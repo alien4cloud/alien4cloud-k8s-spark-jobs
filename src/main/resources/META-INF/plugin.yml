@@ -1,0 +1,9 @@
+id: alien4cloud-k8s-spark-jobs
+name: K8S Kafka Jobs
+version: ${project.version}
+description: >
+  This plugin manages Spark Jobs on K8S.
+configuration_class: alien4cloud.plugin.k8s.spark.jobs.PluginConfiguration
+component_descriptors:
+dependencies:
+  - alien4cloud-kubernetes-plugin

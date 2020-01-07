@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>alien4cloud</groupId>
+        <artifactId>alien4cloud-parent</artifactId>
+        <version>3.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>alien4cloud-k8s-spark-jobs</artifactId>
+    <name>Spark Jobs on K8S Plugin</name>
+    <version>3.0.0-SNAPSHOT</version>
+
+    <properties>
+        <alien4cloud.dsl.version>alien_dsl_2_0_0</alien4cloud.dsl.version>
+        <tosca.normative.types.version>1.0.0-ALIEN20</tosca.normative.types.version>
+        <alien4cloud.kubernetes.api.version>${project.version}</alien4cloud.kubernetes.api.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>alien4cloud</groupId>
+            <artifactId>alien4cloud-core</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>alien4cloud</groupId>
+            <artifactId>alien4cloud-rest-api</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <scm>
+        <connection>scm:git:https://github.com/alien4cloud/alien4cloud-k8s-spark-jobs.git</connection>
+    </scm>
+
+    <repositories>
+        <repository>
+            <id>repo.opensource.fastconnect.org</id>
+            <url>http://fastconnect.org/maven/content/repositories/opensource</url>
+        </repository>
+        <repository>
+            <id>repo.opensource.snapshot.fastconnect.org</id>
+            <url>http://fastconnect.org/maven/content/repositories/opensource-snapshot</url>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>repo.opensource.fastconnect.org</id>
+            <url>https://fastconnect.org/maven/content/repositories/opensource</url>
+        </repository>
+        <snapshotRepository>
+            <id>repo.opensource.snapshot.fastconnect.org</id>
+            <url>https://fastconnect.org/maven/content/repositories/opensource-snapshot</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <ignoreDirFormatExtensions>true</ignoreDirFormatExtensions>
+                    <attach>false</attach>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <attach>true</attach>
+                            <descriptors>
+                                <descriptor>src/main/assembly/assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
