@@ -5,5 +5,10 @@ description: >
   This plugin manages Spark Jobs on K8S.
 configuration_class: alien4cloud.plugin.k8s.spark.jobs.PluginConfiguration
 component_descriptors:
+  - bean_name: k8s-spark-jobs-modifier
+    name: Spark jobs on kubernetes modifier.
+    description: >
+      This topology modifier generates kube yaml spec files and TOSCA nodes for deployment of spark jobs on kubernetes.
+      Insert this modifier to post-matched-node-setup phase after the kubernetes modifier.
 dependencies:
   - alien4cloud-kubernetes-plugin

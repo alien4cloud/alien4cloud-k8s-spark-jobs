@@ -1,0 +1,99 @@
+tosca_definitions_version: alien_dsl_2_0_0
+
+metadata:
+  template_name: org.alien4cloud.k8s.spark.jobs
+  template_version: 3.0.0-SNAPSHOT
+  template_author: a4c
+
+imports:
+  - tosca-normative-types:1.0.0-ALIEN20
+  - alien-base-types:3.0.0-SNAPSHOT
+
+description: >
+  Spark Jobs on k8s types.
+
+node_types:
+
+  org.alien4cloud.k8s.spark.jobs.SparkJob:
+    derived_from: org.alien4cloud.nodes.Job
+    description: |
+      Spark Jobs on K8S.
+    metadata:
+      icon: /images/spark.png
+    properties:
+      container_name:
+        type: string
+        required: true
+        description: |
+          the name of the container to use
+      java_class:
+        type: string
+        required: true
+        description: |
+          the java class that implements the job
+      jar_file:
+        type: string
+        required: true
+        description: |
+          the jar file that implements the job
+      batch_size:
+        type: integer
+        required: false
+        default: 5
+        description: |
+          Number of pods to launch at once in each round of executor pod allocation.
+      ca_cert:
+        type: string
+        required: false
+        description: |
+          The kube cluster ca cert in base64
+      client_cert:
+        type: string
+        required: false
+        description: |
+          The kube user cert in base64
+      client_key:
+        type: string
+        required: false
+        description: |
+          The kube user key in base64
+      server:
+        type: string
+        required: false
+        description: |
+          The kube api server
+      namespace:
+        type: string
+        required: false
+        description: |
+          The k8s namespace
+    interfaces:
+      tosca.interfaces.node.lifecycle.Runnable:
+        submit:
+          inputs:
+            CA_CERT: { get_property: [SELF, ca_cert] }
+            CLIENT_CERT: { get_property: [SELF, client_cert] }
+            CLIENT_KEY: { get_property: [SELF, client_key] }
+            SERVER: { get_property: [SELF, server] }
+            NAMESPACE: { get_property: [SELF, namespace] }
+            CONTAINER_NAME: { get_property: [SELF, container_name] }
+            JAR_FILE: { get_property: [SELF, jar_file] }
+            JAVA_CLASS: { get_property: [SELF, java_class] }
+            BATCH_SIZE: { get_property: [SELF, batch_size] }
+          implementation: scripts/submit.sh
+        run:
+          inputs:
+            CA_CERT: { get_property: [SELF, ca_cert] }
+            CLIENT_CERT: { get_property: [SELF, client_cert] }
+            CLIENT_KEY: { get_property: [SELF, client_key] }
+            SERVER: { get_property: [SELF, server] }
+            NAMESPACE: { get_property: [SELF, namespace] }
+          implementation: scripts/run.sh
+        cancel:
+          inputs:
+            CA_CERT: { get_property: [SELF, ca_cert] }
+            CLIENT_CERT: { get_property: [SELF, client_cert] }
+            CLIENT_KEY: { get_property: [SELF, client_key] }
+            SERVER: { get_property: [SELF, server] }
+            NAMESPACE: { get_property: [SELF, namespace] }
+          implementation: scripts/cancel.sh
