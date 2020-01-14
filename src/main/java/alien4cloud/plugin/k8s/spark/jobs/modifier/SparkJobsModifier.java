@@ -149,9 +149,12 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         }
 
         // Add Resources
-        addRole(csar,topology,nsNodeName,k8sYamlConfig);
-        addServiceAccount(csar,topology,nsNodeName,k8sYamlConfig);
-        addRoleBinding(csar,topology,nsNodeName,k8sYamlConfig,k8sContext.get().getNamespace());
+        if (nsNodeName != null) {
+            // When No Namespace Manager, role sa and rb must be preconfigured
+            addRole(csar, topology, nsNodeName, k8sYamlConfig);
+            addServiceAccount(csar, topology, nsNodeName, k8sYamlConfig);
+            addRoleBinding(csar, topology, nsNodeName, k8sYamlConfig, k8sContext.get().getNamespace());
+        }
 
         Set<NodeTemplate> jobs = TopologyNavigationUtil.getNodesOfType(topology, K8S_TYPES_SPARK_JOBS, true);
         jobs.forEach(job -> manageJob(job,csar,topology,k8sContext.get(),k8sCluster.get(),k8sUser.get(),nsNodeName));

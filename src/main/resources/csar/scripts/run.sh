@@ -25,8 +25,6 @@ EOF
 
 K8S_STATUS=$(kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} get po -l job_id=${TOSCA_JOB_ID} --no-headers -o custom-columns=:.status.phase)
 
-rm $KUBECONFIG_FILE
-
 # Default status in RUNNING
 export TOSCA_JOB_STATUS="RUNNING"
 
@@ -43,3 +41,12 @@ elif [ "$K8S_STATUS" = "Failed" ]; then
   export TOSCA_JOB_STATUS="FAILED"
 fi
 
+if [ "$TOSCA_JOB_STATUS" != "RUNNING" ]; then
+  POD_NAME=$(kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} get po -l job_id=${TOSCA_JOB_ID} --no-headers -o custom-columns=:.metadata.name)
+  kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} logs ${POD_NAME}
+
+  # Clean the pod
+  kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} delete po ${POD_NAME}
+fi
+
+rm $KUBECONFIG_FILE
