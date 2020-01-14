@@ -67,6 +67,13 @@ node_types:
         required: false
         description: |
           The k8s namespace
+      annotations:
+        type: map
+        required: false
+        entry_schema:
+          type: string
+        description: |
+          Annotations to add on driver and executor pods
     interfaces:
       tosca.interfaces.node.lifecycle.Runnable:
         submit:
@@ -80,6 +87,7 @@ node_types:
             JAR_FILE: { get_property: [SELF, jar_file] }
             JAVA_CLASS: { get_property: [SELF, java_class] }
             BATCH_SIZE: { get_property: [SELF, batch_size] }
+            ANNOTATIONS: { get_property: [SELF, annotations] }
           implementation: scripts/submit.sh
         run:
           inputs:
