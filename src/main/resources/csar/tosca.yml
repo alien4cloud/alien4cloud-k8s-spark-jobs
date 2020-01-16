@@ -12,6 +12,33 @@ imports:
 description: >
   Spark Jobs on k8s types.
 
+data_types:
+
+  org.alien4cloud.k8s.spark.jobs.Volume:
+    derived_from: tosca.datatypes.Root
+    properties:
+      name:
+        type: string
+        description: |
+          Name of the volume.
+      type:
+         type: string
+         description: |
+           Type of the volume
+         constraints:
+           valid_values: [ 'hostPath', 'emptyDir', 'persistentVolumeClaim' ]
+      mountPath:
+        type: string
+        description: |
+          Where to mount the volume.
+      options:
+        type: map
+        required: false
+        entry_schema:
+          type: string
+        description: |
+          Mount options.
+
 node_types:
 
   org.alien4cloud.k8s.spark.jobs.SparkJob:
@@ -74,6 +101,13 @@ node_types:
           type: string
         description: |
           Annotations to add on driver and executor pods
+      volumes:
+        type: list
+        required: false
+        entry_schema:
+          type: org.alien4cloud.k8s.spark.jobs.Volume
+        description: |
+          Volumes to mount in executor pods
     interfaces:
       tosca.interfaces.node.lifecycle.Runnable:
         submit:
@@ -88,6 +122,7 @@ node_types:
             JAVA_CLASS: { get_property: [SELF, java_class] }
             BATCH_SIZE: { get_property: [SELF, batch_size] }
             ANNOTATIONS: { get_property: [SELF, annotations] }
+            VOLUMES: { get_property: [SELF, volumes] }
           implementation: scripts/submit.sh
         run:
           inputs:
