@@ -42,7 +42,7 @@ public class SparkJobsModifier extends TopologyModifierSupport {
 
 
     public static final String K8S_TYPES_KUBE_CLUSTER = "org.alien4cloud.kubernetes.api.types.nodes.KubeCluster";
-    public static final String K8S_TYPES_SPARK_JOBS = "org.alien4cloud.k8s.spark.jobs.SparkJob";
+    public static final String K8S_TYPES_SPARK_JOBS = "org.alien4cloud.k8s.spark.jobs.AbstractSparkJob";
 
     public static final String K8S_TYPES_SIMPLE_RESOURCE = "org.alien4cloud.kubernetes.api.types.SimpleResource";
 

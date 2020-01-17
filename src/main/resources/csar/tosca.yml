@@ -41,10 +41,11 @@ data_types:
 
 node_types:
 
-  org.alien4cloud.k8s.spark.jobs.SparkJob:
+  org.alien4cloud.k8s.spark.jobs.AbstractSparkJob:
+    abstract: true
     derived_from: org.alien4cloud.nodes.Job
     description: |
-      Spark Jobs on K8S.
+      Abstract Spark Jobs on K8S.
     metadata:
       icon: /images/spark.png
     properties:
@@ -53,16 +54,6 @@ node_types:
         required: true
         description: |
           the name of the container to use
-      java_class:
-        type: string
-        required: true
-        description: |
-          the java class that implements the job
-      jar_file:
-        type: string
-        required: true
-        description: |
-          the jar file that implements the job
       batch_size:
         type: integer
         required: false
@@ -115,6 +106,24 @@ node_types:
           type: org.alien4cloud.k8s.spark.jobs.Volume
         description: |
           Volumes to mount in executor pods
+
+  org.alien4cloud.k8s.spark.jobs.JavaSparkJob:
+    derived_from: org.alien4cloud.k8s.spark.jobs.AbstractSparkJob
+    description: |
+      Spark Jobs on K8S.
+    metadata:
+      icon: /images/spark.png
+    properties:
+      java_class:
+        type: string
+        required: true
+        description: |
+          the java class that implements the job
+      jar_file:
+        type: string
+        required: true
+        description: |
+          the jar file that implements the job
     interfaces:
       tosca.interfaces.node.lifecycle.Runnable:
         submit:
@@ -131,7 +140,7 @@ node_types:
             ANNOTATIONS: { get_property: [SELF, annotations] }
             LABELS: { get_property: [SELF, labels] }
             VOLUMES: { get_property: [SELF, volumes] }
-          implementation: scripts/submit.sh
+          implementation: scripts/submit-java.sh
         run:
           inputs:
             CA_CERT: { get_property: [SELF, ca_cert] }
