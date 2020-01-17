@@ -106,6 +106,10 @@ node_types:
           type: org.alien4cloud.k8s.spark.jobs.Volume
         description: |
           Volumes to mount in executor pods
+    artifacts:
+      - common:
+          type: tosca.artifacts.File
+          file: scripts/submit-common.sh
 
   org.alien4cloud.k8s.spark.jobs.JavaSparkJob:
     derived_from: org.alien4cloud.k8s.spark.jobs.AbstractSparkJob
