@@ -161,3 +161,48 @@ node_types:
             SERVER: { get_property: [SELF, server] }
             NAMESPACE: { get_property: [SELF, namespace] }
           implementation: scripts/cancel.sh
+
+  org.alien4cloud.k8s.spark.jobs.PythonSparkJob:
+    derived_from: org.alien4cloud.k8s.spark.jobs.AbstractSparkJob
+    description: |
+      Spark Jobs on K8S.
+    metadata:
+      icon: /images/spark.png
+    properties:
+      py_file:
+        type: string
+        required: true
+        description: |
+          the python file that implements the job
+    interfaces:
+      tosca.interfaces.node.lifecycle.Runnable:
+        submit:
+          inputs:
+            CA_CERT: { get_property: [SELF, ca_cert] }
+            CLIENT_CERT: { get_property: [SELF, client_cert] }
+            CLIENT_KEY: { get_property: [SELF, client_key] }
+            SERVER: { get_property: [SELF, server] }
+            NAMESPACE: { get_property: [SELF, namespace] }
+            CONTAINER_NAME: { get_property: [SELF, container_name] }
+            PY_FILE: { get_property: [SELF, py_file] }
+            BATCH_SIZE: { get_property: [SELF, batch_size] }
+            ANNOTATIONS: { get_property: [SELF, annotations] }
+            LABELS: { get_property: [SELF, labels] }
+            VOLUMES: { get_property: [SELF, volumes] }
+          implementation: scripts/submit-python.sh
+        run:
+          inputs:
+            CA_CERT: { get_property: [SELF, ca_cert] }
+            CLIENT_CERT: { get_property: [SELF, client_cert] }
+            CLIENT_KEY: { get_property: [SELF, client_key] }
+            SERVER: { get_property: [SELF, server] }
+            NAMESPACE: { get_property: [SELF, namespace] }
+          implementation: scripts/run.sh
+        cancel:
+          inputs:
+            CA_CERT: { get_property: [SELF, ca_cert] }
+            CLIENT_CERT: { get_property: [SELF, client_cert] }
+            CLIENT_KEY: { get_property: [SELF, client_key] }
+            SERVER: { get_property: [SELF, server] }
+            NAMESPACE: { get_property: [SELF, namespace] }
+          implementation: scripts/cancel.sh
