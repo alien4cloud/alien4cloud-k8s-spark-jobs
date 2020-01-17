@@ -101,6 +101,13 @@ node_types:
           type: string
         description: |
           Annotations to add on driver and executor pods
+      labels:
+        type: map
+        required: false
+        entry_schema:
+          type: string
+        description: |
+          Annotations to add on driver and executor pods
       volumes:
         type: list
         required: false
@@ -122,6 +129,7 @@ node_types:
             JAVA_CLASS: { get_property: [SELF, java_class] }
             BATCH_SIZE: { get_property: [SELF, batch_size] }
             ANNOTATIONS: { get_property: [SELF, annotations] }
+            LABELS: { get_property: [SELF, labels] }
             VOLUMES: { get_property: [SELF, volumes] }
           implementation: scripts/submit.sh
         run:

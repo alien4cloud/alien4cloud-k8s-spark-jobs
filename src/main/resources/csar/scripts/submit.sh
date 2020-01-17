@@ -15,8 +15,6 @@ echo $CLIENT_KEY | base64 -d > $CLIENT_KEY_FILE
 VOLUMES_MOUNTS=$(echo ${VOLUMES} | jq -r  'map("--conf spark.kubernetes.executor.volumes.\(.type).\(.name).mount.path=\(.mountPath) --conf spark.kubernetes.driver.volumes.\(.type).\(.name).mount.path=\(.mountPath)") | join(" ")')
 VOLUMES_OPTS=$(echo ${VOLUMES} | jq -r '.[] | .name as $n | .type as $t | select(has("options")) | .options | to_entries | .[] | { name: $n , type: $t,key: .key , val: .value} | "--conf spark.kubernetes.driver.volumes.\(.type).\(.name).options.\(.key)=\(.val) --conf spark.kubernetes.executor.volumes.\(.type).\(.name).options.\(.key)=\(.val)"')
 
-echo ANNOTATIONS: ${ANNOTATIONS}
-echo ANNOTATIONS_OPTS: ${ANNOTATIONS_OPTS}
 
 echo "Mounts: ${VOLUMES_MOUNTS}"
 echo "Mount options: ${VOLUMES_OPTS}"
@@ -54,6 +52,9 @@ EOF
 
 # Output ANNOTATIONS
 echo $ANNOTATIONS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.annotation.\(.key)=\(.value)","--conf", "spark.kubernetes.executor.annotation.\(.key)=\(.value)"]) | flatten | .[]' >> $PARAM_FILE
+
+# Output ANNOTATIONS
+echo $LABELS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.label.\(.key)=\(.value)","--conf", "spark.kubernetes.executor.label.\(.key)=\(.value)"]) | flatten | .[]' >> $PARAM_FILE
 
 # Jar file
 envsubst >> $PARAM_FILE <<EOF
