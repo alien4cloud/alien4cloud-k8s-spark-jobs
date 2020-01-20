@@ -55,6 +55,8 @@ echo $VOLUMES | jq -r 'map(["--conf","spark.kubernetes.executor.volumes.\(.type)
 echo $VOLUMES | jq -r  '.[] | .name as $n | .type as $t | select(has("options")) | .options |to_entries | .[] | { name: $n , type: $t,key: .key , val: .value} | [ "--conf" , "spark.kubernetes.driver.volumes.\(.type).\(.name).options.\(.key)=\(.val)", "--conf", "spark.kubernetes.executor.volumes.\(.type).\(.name).options.\(.key)=\(.val)" ] | .[]' >> $PARAM_FILE
 
 function do_submit() {
+  # Add Parameters
+  echo $PARAMETERS | jq -r '.[]' >> $PARAM_FILE
   cat $PARAM_FILE | tr '\n' '\0' | xargs -0 ${SPARK_HOME}/bin/spark-submit
 }
 

@@ -106,6 +106,11 @@ node_types:
           type: org.alien4cloud.k8s.spark.jobs.Volume
         description: |
           Volumes to mount in executor pods
+      parameters:
+        type: list
+        required: false
+        entry_schema:
+          type: string
     artifacts:
       - common:
           type: tosca.artifacts.File
@@ -144,6 +149,7 @@ node_types:
             ANNOTATIONS: { get_property: [SELF, annotations] }
             LABELS: { get_property: [SELF, labels] }
             VOLUMES: { get_property: [SELF, volumes] }
+            PARAMETERS: { get_property: [SELF, parameters]}
           implementation: scripts/submit-java.sh
         run:
           inputs:
@@ -189,6 +195,7 @@ node_types:
             ANNOTATIONS: { get_property: [SELF, annotations] }
             LABELS: { get_property: [SELF, labels] }
             VOLUMES: { get_property: [SELF, volumes] }
+            PARAMETERS: { get_property: [SELF, parameters]}
           implementation: scripts/submit-python.sh
         run:
           inputs:
