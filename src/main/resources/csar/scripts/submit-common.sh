@@ -54,6 +54,34 @@ echo $VOLUMES | jq -r 'map(["--conf","spark.kubernetes.executor.volumes.\(.type)
 # Output Mounts options
 echo $VOLUMES | jq -r  '.[] | .name as $n | .type as $t | select(has("options")) | .options |to_entries | .[] | { name: $n , type: $t,key: .key , val: .value} | [ "--conf" , "spark.kubernetes.driver.volumes.\(.type).\(.name).options.\(.key)=\(.val)", "--conf", "spark.kubernetes.executor.volumes.\(.type).\(.name).options.\(.key)=\(.val)" ] | .[]' >> $PARAM_FILE
 
+if [ ! -z "$EXECUTOR_LIMIT_CORES" ]; then
+envsubst >> $PARAM_FILE <<EOF
+--conf
+spark.kubernetes.executor.limit.cores=${EXECUTOR_LIMIT_CORES}
+EOF
+fi
+
+if [ ! -z "$DRIVER_LIMIT_CORES" ]; then
+envsubst >> $PARAM_FILE <<EOF
+--conf
+spark.kubernetes.driver.limit.cores=${DRIVER_LIMIT_CORES}
+EOF
+fi
+
+if [ ! -z "$EXECUTOR_REQUEST_CORES" ]; then
+envsubst >> $PARAM_FILE <<EOF
+--conf
+spark.kubernetes.executor.request.cores=${EXECUTOR_REQUEST_CORES}
+EOF
+fi
+
+if [ ! -z "$MEMORY_OVERHEAD_FACTOR" ]; then
+envsubst >> $PARAM_FILE <<EOF
+--conf
+spark.kubernetes.memoryOverheadFactor=${MEMORY_OVERHEAD_FACTOR}
+EOF
+fi
+
 function do_submit() {
   # Add Parameters
   echo $PARAMETERS | jq -r '.[]' >> $PARAM_FILE

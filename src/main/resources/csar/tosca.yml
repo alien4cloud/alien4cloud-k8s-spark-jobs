@@ -111,6 +111,26 @@ node_types:
         required: false
         entry_schema:
           type: string
+      executor_limit_cores:
+        type: string
+        required: false
+        description: |
+          A hard cpu limit for each executor pod launched for the Spark Application.
+      driver_limit_cores:
+        type: string
+        required: false
+        description: |
+          A hard cpu limit for the driver pod.
+      executor_request_cores:
+        type: string
+        required: false
+        description: |
+          The cpu request for each executor pod.
+      memory_overhead_factor:
+        type: string
+        required: false
+        description: |
+          Memory Overhead Factor that will allocate memory to non-JVM memory.
     artifacts:
       - common:
           type: tosca.artifacts.File
@@ -150,6 +170,10 @@ node_types:
             LABELS: { get_property: [SELF, labels] }
             VOLUMES: { get_property: [SELF, volumes] }
             PARAMETERS: { get_property: [SELF, parameters]}
+            EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores]}
+            DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
+            EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
+            MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor]}
           implementation: scripts/submit-java.sh
         run:
           inputs:
@@ -196,6 +220,10 @@ node_types:
             LABELS: { get_property: [SELF, labels] }
             VOLUMES: { get_property: [SELF, volumes] }
             PARAMETERS: { get_property: [SELF, parameters]}
+            EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores]}
+            DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
+            EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
+            MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor]}
           implementation: scripts/submit-python.sh
         run:
           inputs:
