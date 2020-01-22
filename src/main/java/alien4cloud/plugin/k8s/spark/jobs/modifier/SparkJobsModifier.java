@@ -130,10 +130,24 @@ public class SparkJobsModifier extends TopologyModifierSupport {
     protected void doProcess(Topology topology,FlowExecutionContext context) {
         Csar csar = new Csar(topology.getArchiveName(), topology.getArchiveVersion());;
 
+        Set<NodeTemplate> jobs = TopologyNavigationUtil.getNodesOfType(topology, K8S_TYPES_SPARK_JOBS, true);
+
         String k8sYamlConfig = (String) context.getExecutionCache().get(K8S_TYPES_KUBE_CLUSTER);
         String nsNodeName = (String) context.getExecutionCache().get(NAMESPACE_RESOURCE_NAME);
 
-        K8sConfig k8sConfig = configParser.parse(k8sYamlConfig);
+        if (jobs.size()==0) {
+            // No spark jobs, nothing to do
+            return;
+        }
+
+        K8sConfig k8sConfig = null;
+
+        if (k8sYamlConfig != null) {
+            k8sConfig = configParser.parse(k8sYamlConfig);
+        } else {
+            log.error("No Kubernetes config found");
+            return;
+        }
 
         Optional<K8sContext> k8sContext = k8sConfig.getContext(k8sConfig.getCurrentContext());
         if (!k8sContext.isPresent()) {
@@ -151,7 +165,7 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         Set<NodeTemplate> jobs = TopologyNavigationUtil.getNodesOfType(topology, K8S_TYPES_SPARK_JOBS, true);
 
         // Add Resources
-        if (nsNodeName != null && jobs.size() > 0) {
+        if (nsNodeName != null) {
             // When No Namespace Manager, role sa and rb must be preconfigured
             addRole(csar, topology, nsNodeName, k8sYamlConfig);
             addServiceAccount(csar, topology, nsNodeName, k8sYamlConfig);
