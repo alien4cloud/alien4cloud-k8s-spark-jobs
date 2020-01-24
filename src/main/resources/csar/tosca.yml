@@ -131,6 +131,14 @@ node_types:
         required: false
         description: |
           Memory Overhead Factor that will allocate memory to non-JVM memory.
+    attributes:
+      parameter_file: { get_operation_output: [ SELF, Standard, create, PARAMETER_FILE ] }
+    interfaces:
+      Standard:
+        create:
+          inputs:
+            operation: "create"
+          implementation: scripts/create.sh
     artifacts:
       - common:
           type: tosca.artifacts.File
@@ -170,6 +178,7 @@ node_types:
             LABELS: { get_property: [SELF, labels] }
             VOLUMES: { get_property: [SELF, volumes] }
             PARAMETERS: { get_property: [SELF, parameters]}
+            PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}
             EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores]}
             DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
             EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
@@ -220,6 +229,7 @@ node_types:
             LABELS: { get_property: [SELF, labels] }
             VOLUMES: { get_property: [SELF, volumes] }
             PARAMETERS: { get_property: [SELF, parameters]}
+            PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}
             EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores]}
             DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
             EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}

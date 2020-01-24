@@ -83,7 +83,12 @@ EOF
 fi
 
 function do_submit() {
-  # Add Parameters
+  # Add Parameters from parameter file
+  if [ -f $PARAMETER_FILE ]; then
+    cat $PARAMETER_FILE >> $PARAM_FILE
+  fi
+
+  # Add Parameters from properties
   echo $PARAMETERS | jq -r '.[]' >> $PARAM_FILE
   cat $PARAM_FILE | tr '\n' '\0' | xargs -0 ${SPARK_HOME}/bin/spark-submit
 }
