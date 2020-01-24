@@ -111,6 +111,13 @@ node_types:
         required: false
         entry_schema:
           type: string
+      secrets:
+        type: map
+        required: false
+        entry_schema:
+          type: string
+        description: |
+          Secrets to add on driver and executor pods
       executor_limit_cores:
         type: string
         required: false
@@ -176,6 +183,7 @@ node_types:
             BATCH_SIZE: { get_property: [SELF, batch_size] }
             ANNOTATIONS: { get_property: [SELF, annotations] }
             LABELS: { get_property: [SELF, labels] }
+            SECRETS: { get_property: [SELF, secrets] }
             VOLUMES: { get_property: [SELF, volumes] }
             PARAMETERS: { get_property: [SELF, parameters]}
             PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}
@@ -227,6 +235,7 @@ node_types:
             BATCH_SIZE: { get_property: [SELF, batch_size] }
             ANNOTATIONS: { get_property: [SELF, annotations] }
             LABELS: { get_property: [SELF, labels] }
+            SECRETS: { get_property: [SELF, secrets] }
             VOLUMES: { get_property: [SELF, volumes] }
             PARAMETERS: { get_property: [SELF, parameters]}
             PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}

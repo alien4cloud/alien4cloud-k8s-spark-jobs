@@ -48,6 +48,9 @@ echo $ANNOTATIONS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.
 # Output ANNOTATIONS
 echo $LABELS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.label.\(.key)=\(.value)","--conf", "spark.kubernetes.executor.label.\(.key)=\(.value)"]) | flatten | .[]' >> $PARAM_FILE
 
+# Output SECRETS
+echo $SECRETS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.secrets.\(.key)=\(.value)","--conf", "spark.kubernetes.executor.secrets.\(.key)=\(.value)"]) | flatten | .[]' >> $PARAM_FILE
+
 # Output Mounts
 echo $VOLUMES | jq -r 'map(["--conf","spark.kubernetes.executor.volumes.\(.type).\(.name).mount.path=\(.mountPath)","--conf","spark.kubernetes.driver.volumes.\(.type).\(.name).mount.path=\(.mountPath)"]) | flatten | .[]' >> $PARAM_FILE
 
