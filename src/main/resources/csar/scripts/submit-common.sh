@@ -40,6 +40,10 @@ spark.kubernetes.authenticate.driver.serviceAccountName=spark-sa
 spark.kubernetes.driver.label.job_id=$TOSCA_JOB_ID
 --conf
 spark.kubernetes.submission.waitAppCompletion=false
+--conf
+spark.hadoop.dfs.client.use.datanode.hostname=true
+--conf
+spark.kubernetes.container.image.pullPolicy=IfNotPresent
 EOF
 
 # Output ANNOTATIONS
