@@ -6,6 +6,7 @@ CA_CERT_FILE=$(mktemp)
 CLIENT_CERT_FILE=$(mktemp)
 CLIENT_KEY_FILE=$(mktemp)
 
+ADD_OPTS_FILE="${PARAMETER_FILE}_ADDOPTS"
 PARAM_FILE=$(mktemp)
 
 echo $CA_CERT | base64 -d > $CA_CERT_FILE
@@ -52,6 +53,9 @@ echo $ANNOTATIONS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.
 # Output ANNOTATIONS
 echo $LABELS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.label.\(.key)=\(.value)","--conf", "spark.kubernetes.executor.label.\(.key)=\(.value)"]) | flatten | .[]' >> $PARAM_FILE
 
+# Output ENVIRONMENTS
+echo $ENVIRONMENTS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driverEnv.\(.key)=\(.value)"]) | flatten | .[]' >> $PARAM_FILE
+
 # Output SECRETS
 echo $SECRETS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.secrets.\(.key)=\(.value)","--conf", "spark.kubernetes.executor.secrets.\(.key)=\(.value)"]) | flatten | .[]' >> $PARAM_FILE
 
@@ -88,6 +92,13 @@ envsubst >> $PARAM_FILE <<EOF
 spark.kubernetes.memoryOverheadFactor=${MEMORY_OVERHEAD_FACTOR}
 EOF
 fi
+
+function pre_submit() {
+  # Add Additionnal options if any
+  if [ -f $ADD_OPTS_FILE ]; then
+	cat $ADD_OPTS_FILE >> $PARAM_FILE
+  fi
+}
 
 function do_submit() {
   # Add Parameters from parameter file

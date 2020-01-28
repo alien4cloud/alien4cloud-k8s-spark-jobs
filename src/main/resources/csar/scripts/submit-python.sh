@@ -2,6 +2,8 @@
 
 source $common
 
+pre_submit
+
 # Jar file
 envsubst >> $PARAM_FILE <<EOF
 $PY_FILE
