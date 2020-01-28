@@ -157,7 +157,9 @@ node_types:
       - common:
           type: tosca.artifacts.File
           file: scripts/submit-common.sh
-
+      - common_configure:
+          type: tosca.artifacts.File
+          file: scripts/configure-common.sh
   org.alien4cloud.k8s.spark.jobs.JavaSparkJob:
     derived_from: org.alien4cloud.k8s.spark.jobs.AbstractSparkJob
     description: |
