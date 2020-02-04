@@ -108,7 +108,7 @@ function do_submit() {
 
   # Add Parameters from properties
   echo $PARAMETERS | jq -r '.[]' >> $PARAM_FILE
-  cat $PARAM_FILE | tr '\n' '\0' | xargs -0 ${SPARK_HOME}/bin/spark-submit
+  cat $PARAM_FILE | tr '\n' '\0' | xargs -0 spark-submit
 }
 
 function do_cleanup() {
