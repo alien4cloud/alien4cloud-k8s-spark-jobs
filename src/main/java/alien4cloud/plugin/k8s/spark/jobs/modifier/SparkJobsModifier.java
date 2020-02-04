@@ -15,6 +15,7 @@ import alien4cloud.tosca.parser.ToscaParser;
 import lombok.extern.slf4j.Slf4j;
 import org.alien4cloud.alm.deployment.configuration.flow.FlowExecutionContext;
 import org.alien4cloud.alm.deployment.configuration.flow.TopologyModifierSupport;
+import org.alien4cloud.plugin.kubernetes.csar.Version;
 import org.alien4cloud.tosca.model.CSARDependency;
 import org.alien4cloud.tosca.model.Csar;
 import org.alien4cloud.tosca.model.definitions.ScalarPropertyValue;
@@ -51,8 +52,6 @@ public class SparkJobsModifier extends TopologyModifierSupport {
     public static final String ROLE_NAME="SparkRole";
     public static final String SERVICEACCOUNT_NAME="SparkSA";
     public static final String ROLEBINDING_NAME="SparkRB";
-
-    public static final String K8S_CSAR_VERSION = "3.0.0-SNAPSHOT";
 
     @Inject
     private K8sConfigParser configParser;
@@ -207,7 +206,7 @@ public class SparkJobsModifier extends TopologyModifierSupport {
                 return dep.getVersion();
             }
         }
-        return K8S_CSAR_VERSION;
+        return Version.K8S_CSAR_VERSION;
     }
 
     protected void addRole(Csar csar,Topology topology,String nsNodeName,String k8sYamlConfig) {
