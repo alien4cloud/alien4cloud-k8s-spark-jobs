@@ -1,0 +1,46 @@
+- name: Use jinja to replace vars in the config file
+  hosts: all
+  strategy: linear
+  become: false
+
+  tasks:
+
+    - name: Define a var named _ that contains the var values
+      set_fact:
+        _: "{{ var_values | from_yaml }}"
+
+    - name: Create temporary file to store config file
+      tempfile:
+        state: file
+        suffix: temp
+      register: config_file
+
+    - name: Render config in temp directory using Jinja
+      template:
+        src: "{{ config }}"
+        dest: "{{ config_file.path }}"
+        force: yes
+
+    - name: Set the attribute CONFIG_FILE_PATH
+      set_fact:
+        CONFIG_FILE_PATH: "{{ config_file.path }}"
+
+    - name: Here is the file
+      debug:
+        var: CONFIG_FILE_PATH
+
+    - name: Create temporary file to store kube config file
+      tempfile:
+        state: file
+        suffix: kube_config_file
+      register: kube_config_file
+
+    - name: Render kube config in temp directory using Jinja
+      template:
+        src: "{{ kube_config }}"
+        dest: "{{ kube_config_file.path }}"
+        force: yes
+
+    - name: Set the attribute KUBE_CONFIG_FILE_PATH
+      set_fact:
+        KUBE_CONFIG_FILE_PATH: "{{ kube_config_file.path }}"
