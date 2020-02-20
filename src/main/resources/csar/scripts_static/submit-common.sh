@@ -94,16 +94,23 @@ fi
 
 function pre_submit() {
   # Add Additionnal options if any
-}
-
-function do_submit() {
   # Add Parameters from parameter file
   if [ -f $PARAMETER_FILE ]; then
     cat $PARAMETER_FILE >> $PARAM_FILE
   fi
+}
+
+function do_submit() {
 
   # Add Parameters from properties
   echo $PARAMETERS | jq -r '.[]' >> $PARAM_FILE
+
+  if [ "$debug_operations" == "true" ]; then
+    echo "PARAM_FILE is $PARAM_FILE"
+    cat $PARAM_FILE
+    echo "submit command : spark-submit $(cat $PARAM_FILE | tr '\n' ' ')"
+  fi
+
   cat $PARAM_FILE | tr '\n' '\0' | xargs -0 spark-submit
 }
 

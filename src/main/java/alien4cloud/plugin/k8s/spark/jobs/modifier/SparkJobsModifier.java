@@ -41,7 +41,7 @@ import java.util.Set;
 @Component("k8s-spark-jobs-modifier")
 public class SparkJobsModifier extends TopologyModifierSupport {
 
-
+    // TODO: use constant from K8S plugin
     public static final String K8S_TYPES_KUBE_CLUSTER = "org.alien4cloud.kubernetes.api.types.nodes.KubeCluster";
     public static final String K8S_TYPES_SPARK_JOBS = "org.alien4cloud.k8s.spark.jobs.AbstractSparkJob";
     // TODO: only use static
@@ -141,6 +141,9 @@ public class SparkJobsModifier extends TopologyModifierSupport {
 
         if (jobs.size()==0) {
             // No spark jobs, nothing to do
+            if (log.isDebugEnabled()) {
+                log.debug("No spark Job detected, nothin to do");
+            }
             return;
         }
 
@@ -150,12 +153,14 @@ public class SparkJobsModifier extends TopologyModifierSupport {
             k8sConfig = configParser.parse(k8sYamlConfig);
         } else {
             log.error("No Kubernetes config found");
+            context.log().error("No Kubernetes config found");
             return;
         }
 
         Optional<K8sContext> k8sContext = k8sConfig.getContext(k8sConfig.getCurrentContext());
         if (!k8sContext.isPresent()) {
             log.error("Invalid k8s configuration");
+            context.log().error("Invalid k8s configuration");
             return;
         }
 
@@ -163,6 +168,7 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         Optional<K8sUser> k8sUser = k8sConfig.getUser(k8sContext.get().getUser());
         if ((!k8sCluster.isPresent())||(!k8sUser.isPresent())) {
             log.error("Invalid k8s configuration");
+            context.log().error("Invalid k8s configuration");
             return;
         }
 

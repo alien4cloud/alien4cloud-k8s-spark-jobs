@@ -1,6 +1,12 @@
 #!/bin/bash
 
-K8S_STATUS=$(kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} get po -l job_id=${TOSCA_JOB_ID} --no-headers -o custom-columns=:.status.phase)
+statusCmd="kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} get po -l job_id=${TOSCA_JOB_ID} --no-headers -o custom-columns=:.status.phase"
+if [ "$debug_operations" == "true" ]; then
+  echo "status command : ${statusCmd}"
+fi
+
+K8S_STATUS=$(echo $statusCmd | bash)
+echo "K8S_STATUS: $K8S_STATUS"
 
 # Default status in RUNNING
 export TOSCA_JOB_STATUS="RUNNING"
@@ -19,11 +25,28 @@ elif [ "$K8S_STATUS" = "Failed" ]; then
 fi
 
 if [ "$TOSCA_JOB_STATUS" != "RUNNING" ]; then
-  POD_NAME=$(kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} get po -l job_id=${TOSCA_JOB_ID} --no-headers -o custom-columns=:.metadata.name)
-  kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} logs ${POD_NAME}
+  getPodNameCmd="kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} get po -l job_id=${TOSCA_JOB_ID} --no-headers -o custom-columns=:.metadata.name"
+  if [ "$debug_operations" == "true" ]; then
+    echo "Get pod name command : $getPodNameCmd"
+  fi
+
+  POD_NAME=$(eval $getPodNameCmd)
+  if [ "$debug_operations" == "true" ]; then
+    echo "pod name is : $POD_NAME"
+  fi
+
+  getLogCmd="kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} logs ${POD_NAME}"
+  if [ "$debug_operations" == "true" ]; then
+    echo "Get log command : $getLogCmd"
+  fi
+  eval "$getLogCmd"
 
   # Clean the pod
-  kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} delete po ${POD_NAME}
+  cleanPodCmd="kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} delete po ${POD_NAME}"
+  if [ "$debug_operations" == "true" ]; then
+    echo "Clean pod command : $cleanPodCmd"
+  fi
+  eval "$cleanPodCmd"
+
 fi
 
-#rm $KUBECONFIG_FILE

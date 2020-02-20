@@ -50,6 +50,12 @@ node_types:
     metadata:
       icon: /images/spark.png
     properties:
+      debug_operations:
+        type: boolean
+        required: false
+        default: false
+        description: |
+          Set to true to make operation more verbose
       container_name:
         type: string
         required: true
@@ -297,6 +303,12 @@ node_types:
         description: This map will be filled by a modifier and will contain var_name -> var_value.
         entry_schema:
           type: string
+      debug_operations:
+        type: boolean
+        required: false
+        default: false
+        description: |
+          Set to true to make operation more verbose
       container_name:
         type: string
         required: true
@@ -414,18 +426,21 @@ node_types:
             CLIENT_KEY: { get_property: [SELF, client_key] }
             SERVER: { get_property: [SELF, server] }
             NAMESPACE: { get_property: [SELF, namespace] }
+            debug_operations: { get_property: [SELF, debug_operations] }
           implementation: playbook/configure.yml
         delete:
           inputs:
             KUBECONFIG_FILE: { get_attribute: [SELF, kube_config_file_path] }
             PARAMETER_FILE: { get_attribute: [SELF, parameter_file] }
             CONFIG_FILE: { get_attribute: [SELF, config_file_path] }
+            debug_operations: { get_property: [SELF, debug_operations] }
           implementation: scripts_static/delete.sh
       tosca.interfaces.node.lifecycle.Runnable:
         run:
           inputs:
             NAMESPACE: { get_property: [SELF, namespace] }
             KUBECONFIG_FILE: { get_attribute: [SELF, kube_config_file_path] }
+            debug_operations: { get_property: [SELF, debug_operations] }
           implementation: scripts_static/run.sh
     artifacts:
       - config:
@@ -436,7 +451,7 @@ node_types:
           type: tosca.artifacts.File
       - common:
           type: tosca.artifacts.File
-          file: scripts/submit-common.sh
+          file: scripts_static/submit-common.sh
 
   org.alien4cloud.k8s.spark.jobs.static.JavaSparkJob:
     derived_from: org.alien4cloud.k8s.spark.jobs.static.AbstractSparkJob
@@ -479,6 +494,7 @@ node_types:
             DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
             EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores] }
             MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor] }
+            debug_operations: { get_property: [SELF, debug_operations] }
           implementation: scripts_static/submit-java.sh
 
   org.alien4cloud.k8s.spark.jobs.static.PythonSparkJob:
@@ -516,4 +532,5 @@ node_types:
             DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
             EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
             MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor]}
+            debug_operations: { get_property: [SELF, debug_operations] }
           implementation: scripts_static/submit-python.sh
