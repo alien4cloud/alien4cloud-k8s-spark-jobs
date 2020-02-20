@@ -404,10 +404,6 @@ node_types:
           occurrences: [0, unbounded]
     interfaces:
       Standard:
-        #create:
-        #  inputs:
-        #    operation: "create"
-        #  implementation: scripts/create.sh
         configure:
           inputs:
             var_values: { get_property: [ SELF, var_values ] }
@@ -417,6 +413,16 @@ node_types:
             SERVER: { get_property: [SELF, server] }
             NAMESPACE: { get_property: [SELF, namespace] }
           implementation: playbook/configure.yml
+        delete:
+          inputs:
+            KUBECONFIG_FILE: { get_attribute: [SELF, kube_config_file_path] }
+          implementation: scripts_static/delete.sh
+      tosca.interfaces.node.lifecycle.Runnable:
+        run:
+          inputs:
+            NAMESPACE: { get_property: [SELF, namespace] }
+            KUBECONFIG_FILE: { get_attribute: [SELF, kube_config_file_path] }
+          implementation: scripts_static/run.sh
     artifacts:
       - config:
           file: playbook/configure.yml
@@ -427,9 +433,7 @@ node_types:
       - common:
           type: tosca.artifacts.File
           file: scripts/submit-common.sh
-      - common_configure:
-          type: tosca.artifacts.File
-          file: scripts/configure-common.sh
+
   org.alien4cloud.k8s.spark.jobs.static.JavaSparkJob:
     derived_from: org.alien4cloud.k8s.spark.jobs.static.AbstractSparkJob
     description: |
@@ -448,16 +452,6 @@ node_types:
         description: |
           the jar file that implements the job
     interfaces:
-      Standard:
-        delete:
-          inputs:
-            CA_CERT: { get_property: [SELF, ca_cert] }
-            CLIENT_CERT: { get_property: [SELF, client_cert] }
-            CLIENT_KEY: { get_property: [SELF, client_key] }
-            SERVER: { get_property: [SELF, server] }
-            NAMESPACE: { get_property: [SELF, namespace] }
-            PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}
-          implementation: scripts/delete.sh
       tosca.interfaces.node.lifecycle.Runnable:
         submit:
           inputs:
@@ -467,7 +461,7 @@ node_types:
             SERVER: { get_property: [SELF, server] }
             NAMESPACE: { get_property: [SELF, namespace] }
             CONTAINER_NAME: { get_property: [SELF, container_name] }
-            JAR_FILE: { get_property: [SELF, jar_file] }
+            JAR_FILE: { get_attribute: [SELF, jar_file] }
             JAVA_CLASS: { get_property: [SELF, java_class] }
             BATCH_SIZE: { get_property: [SELF, batch_size] }
             ANNOTATIONS: { get_property: [SELF, annotations] }
@@ -476,28 +470,11 @@ node_types:
             SECRETS: { get_property: [SELF, secrets] }
             VOLUMES: { get_property: [SELF, volumes] }
             PARAMETERS: { get_property: [SELF, parameters]}
-            PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}
             EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores]}
             DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
             EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
             MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor]}
-          implementation: scripts/submit-java.sh
-        run:
-          inputs:
-            CA_CERT: { get_property: [SELF, ca_cert] }
-            CLIENT_CERT: { get_property: [SELF, client_cert] }
-            CLIENT_KEY: { get_property: [SELF, client_key] }
-            SERVER: { get_property: [SELF, server] }
-            NAMESPACE: { get_property: [SELF, namespace] }
-          implementation: scripts/run.sh
-        cancel:
-          inputs:
-            CA_CERT: { get_property: [SELF, ca_cert] }
-            CLIENT_CERT: { get_property: [SELF, client_cert] }
-            CLIENT_KEY: { get_property: [SELF, client_key] }
-            SERVER: { get_property: [SELF, server] }
-            NAMESPACE: { get_property: [SELF, namespace] }
-          implementation: scripts/cancel.sh
+          implementation: scripts_static/submit-java.sh
 
   org.alien4cloud.k8s.spark.jobs.static.PythonSparkJob:
     derived_from: org.alien4cloud.k8s.spark.jobs.static.AbstractSparkJob
@@ -521,7 +498,7 @@ node_types:
             SERVER: { get_property: [SELF, server] }
             NAMESPACE: { get_property: [SELF, namespace] }
             CONTAINER_NAME: { get_property: [SELF, container_name] }
-            PY_FILE: { get_property: [SELF, py_file] }
+            PY_FILE: { get_attribute: [SELF, py_file] }
             BATCH_SIZE: { get_property: [SELF, batch_size] }
             ANNOTATIONS: { get_property: [SELF, annotations] }
             LABELS: { get_property: [SELF, labels] }
@@ -529,25 +506,8 @@ node_types:
             SECRETS: { get_property: [SELF, secrets] }
             VOLUMES: { get_property: [SELF, volumes] }
             PARAMETERS: { get_property: [SELF, parameters]}
-            PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}
             EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores]}
             DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
             EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
             MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor]}
-          implementation: scripts/submit-python.sh
-        run:
-          inputs:
-            CA_CERT: { get_property: [SELF, ca_cert] }
-            CLIENT_CERT: { get_property: [SELF, client_cert] }
-            CLIENT_KEY: { get_property: [SELF, client_key] }
-            SERVER: { get_property: [SELF, server] }
-            NAMESPACE: { get_property: [SELF, namespace] }
-          implementation: scripts/run.sh
-        cancel:
-          inputs:
-            CA_CERT: { get_property: [SELF, ca_cert] }
-            CLIENT_CERT: { get_property: [SELF, client_cert] }
-            CLIENT_KEY: { get_property: [SELF, client_key] }
-            SERVER: { get_property: [SELF, server] }
-            NAMESPACE: { get_property: [SELF, namespace] }
-          implementation: scripts/cancel.sh
+          implementation: scripts_static/submit-python.sh
