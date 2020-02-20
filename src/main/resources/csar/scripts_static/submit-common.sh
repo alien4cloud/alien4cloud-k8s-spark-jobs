@@ -97,14 +97,19 @@ function pre_submit() {
 }
 
 function do_submit() {
+  # Add Parameters from parameter file
+  if [ -f $PARAMETER_FILE ]; then
+    cat $PARAMETER_FILE >> $PARAM_FILE
+  fi
+
   # Add Parameters from properties
   echo $PARAMETERS | jq -r '.[]' >> $PARAM_FILE
   cat $PARAM_FILE | tr '\n' '\0' | xargs -0 spark-submit
 }
 
 function do_cleanup() {
-  rm $CA_CERT_FILE
-  rm $CLIENT_CERT_FILE
-  rm $CLIENT_KEY_FILE
-  rm $PARAM_FILE
+  rm -f $CA_CERT_FILE
+  rm -f $CLIENT_CERT_FILE
+  rm -f $CLIENT_KEY_FILE
+  rm -f $PARAM_FILE
 }

@@ -396,7 +396,7 @@ node_types:
     attributes:
       kube_config_file_path: { get_operation_output: [SELF, Standard, configure, KUBE_CONFIG_FILE_PATH] }
       config_file_path: { get_operation_output: [SELF, Standard, configure, CONFIG_FILE_PATH] }
-      #parameter_file: { get_operation_output: [ SELF, Standard, create, PARAMETER_FILE ] }
+      parameter_file: { get_operation_output: [ SELF, Standard, create, PARAMETER_FILE ] }
     requirements:
       - endpoint:
           capability: org.alien4cloud.capabilities.StaticEndpoint
@@ -404,6 +404,8 @@ node_types:
           occurrences: [0, unbounded]
     interfaces:
       Standard:
+        create:
+          implementation: scripts/create.sh
         configure:
           inputs:
             var_values: { get_property: [ SELF, var_values ] }
@@ -416,6 +418,8 @@ node_types:
         delete:
           inputs:
             KUBECONFIG_FILE: { get_attribute: [SELF, kube_config_file_path] }
+            PARAMETER_FILE: { get_attribute: [SELF, parameter_file] }
+            CONFIG_FILE: { get_attribute: [SELF, config_file_path] }
           implementation: scripts_static/delete.sh
       tosca.interfaces.node.lifecycle.Runnable:
         run:
@@ -466,14 +470,15 @@ node_types:
             BATCH_SIZE: { get_property: [SELF, batch_size] }
             ANNOTATIONS: { get_property: [SELF, annotations] }
             LABELS: { get_property: [SELF, labels] }
-            ENVIRONMENTS: { get_property: [ SELF, environments]}
+            ENVIRONMENTS: { get_property: [ SELF, environments] }
             SECRETS: { get_property: [SELF, secrets] }
             VOLUMES: { get_property: [SELF, volumes] }
-            PARAMETERS: { get_property: [SELF, parameters]}
-            EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores]}
+            PARAMETERS: { get_property: [SELF, parameters] }
+            PARAMETER_FILE: { get_attribute: [SELF, parameter_file] }
+            EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores] }
             DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
-            EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
-            MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor]}
+            EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores] }
+            MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor] }
           implementation: scripts_static/submit-java.sh
 
   org.alien4cloud.k8s.spark.jobs.static.PythonSparkJob:
@@ -506,6 +511,7 @@ node_types:
             SECRETS: { get_property: [SELF, secrets] }
             VOLUMES: { get_property: [SELF, volumes] }
             PARAMETERS: { get_property: [SELF, parameters]}
+            PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}
             EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores]}
             DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
             EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
