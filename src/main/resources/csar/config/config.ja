@@ -1,0 +1,6 @@
+
+such kind of .ja file is generally used with a node that has 'var_values' property :
+
+{{ NODE }} : {{ var_values }}
+
+{{ vars }}

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Remove files
 rm -f "${PARAMETER_FILE}"

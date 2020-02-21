@@ -50,253 +50,6 @@ node_types:
     metadata:
       icon: /images/spark.png
     properties:
-      debug_operations:
-        type: boolean
-        required: false
-        default: false
-        description: |
-          Set to true to make operation more verbose
-      container_name:
-        type: string
-        required: true
-        description: |
-          the name of the container to use
-      batch_size:
-        type: integer
-        required: false
-        default: 5
-        description: |
-          Number of pods to launch at once in each round of executor pod allocation.
-      ca_cert:
-        type: string
-        required: false
-        description: |
-          The kube cluster ca cert in base64
-      client_cert:
-        type: string
-        required: false
-        description: |
-          The kube user cert in base64
-      client_key:
-        type: string
-        required: false
-        description: |
-          The kube user key in base64
-      server:
-        type: string
-        required: false
-        description: |
-          The kube api server
-      namespace:
-        type: string
-        required: false
-        description: |
-          The k8s namespace
-      annotations:
-        type: map
-        required: false
-        entry_schema:
-          type: string
-        description: |
-          Annotations to add on driver and executor pods
-      labels:
-        type: map
-        required: false
-        entry_schema:
-          type: string
-        description: |
-          Annotations to add on driver and executor pods
-      environments:
-        type: map
-        required: false
-        entry_schema:
-          type: string
-        description: |
-          Environment variable to add to driver pod.
-      volumes:
-        type: list
-        required: false
-        entry_schema:
-          type: org.alien4cloud.k8s.spark.jobs.Volume
-        description: |
-          Volumes to mount in executor pods
-      parameters:
-        type: list
-        required: false
-        entry_schema:
-          type: string
-      secrets:
-        type: map
-        required: false
-        entry_schema:
-          type: string
-        description: |
-          Secrets to add on driver and executor pods
-      executor_limit_cores:
-        type: string
-        required: false
-        description: |
-          A hard cpu limit for each executor pod launched for the Spark Application.
-      driver_limit_cores:
-        type: string
-        required: false
-        description: |
-          A hard cpu limit for the driver pod.
-      executor_request_cores:
-        type: string
-        required: false
-        description: |
-          The cpu request for each executor pod.
-      memory_overhead_factor:
-        type: string
-        required: false
-        description: |
-          Memory Overhead Factor that will allocate memory to non-JVM memory.
-    attributes:
-      parameter_file: { get_operation_output: [ SELF, Standard, create, PARAMETER_FILE ] }
-    interfaces:
-      Standard:
-        create:
-          inputs:
-            operation: "create"
-          implementation: scripts/create.sh
-    artifacts:
-      - common:
-          type: tosca.artifacts.File
-          file: scripts/submit-common.sh
-      - common_configure:
-          type: tosca.artifacts.File
-          file: scripts/configure-common.sh
-  org.alien4cloud.k8s.spark.jobs.JavaSparkJob:
-    derived_from: org.alien4cloud.k8s.spark.jobs.AbstractSparkJob
-    description: |
-      Spark Jobs on K8S.
-    metadata:
-      icon: /images/spark.png
-    properties:
-      java_class:
-        type: string
-        required: true
-        description: |
-          the java class that implements the job
-      jar_file:
-        type: string
-        required: true
-        description: |
-          the jar file that implements the job
-    interfaces:
-      Standard:
-        delete:
-          inputs:
-            CA_CERT: { get_property: [SELF, ca_cert] }
-            CLIENT_CERT: { get_property: [SELF, client_cert] }
-            CLIENT_KEY: { get_property: [SELF, client_key] }
-            SERVER: { get_property: [SELF, server] }
-            NAMESPACE: { get_property: [SELF, namespace] }
-            PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}
-          implementation: scripts/delete.sh
-      tosca.interfaces.node.lifecycle.Runnable:
-        submit:
-          inputs:
-            CA_CERT: { get_property: [SELF, ca_cert] }
-            CLIENT_CERT: { get_property: [SELF, client_cert] }
-            CLIENT_KEY: { get_property: [SELF, client_key] }
-            SERVER: { get_property: [SELF, server] }
-            NAMESPACE: { get_property: [SELF, namespace] }
-            CONTAINER_NAME: { get_property: [SELF, container_name] }
-            JAR_FILE: { get_property: [SELF, jar_file] }
-            JAVA_CLASS: { get_property: [SELF, java_class] }
-            BATCH_SIZE: { get_property: [SELF, batch_size] }
-            ANNOTATIONS: { get_property: [SELF, annotations] }
-            LABELS: { get_property: [SELF, labels] }
-            ENVIRONMENTS: { get_property: [ SELF, environments]}
-            SECRETS: { get_property: [SELF, secrets] }
-            VOLUMES: { get_property: [SELF, volumes] }
-            PARAMETERS: { get_property: [SELF, parameters]}
-            PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}
-            EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores]}
-            DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
-            EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
-            MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor]}
-          implementation: scripts/submit-java.sh
-        run:
-          inputs:
-            CA_CERT: { get_property: [SELF, ca_cert] }
-            CLIENT_CERT: { get_property: [SELF, client_cert] }
-            CLIENT_KEY: { get_property: [SELF, client_key] }
-            SERVER: { get_property: [SELF, server] }
-            NAMESPACE: { get_property: [SELF, namespace] }
-          implementation: scripts/run.sh
-        cancel:
-          inputs:
-            CA_CERT: { get_property: [SELF, ca_cert] }
-            CLIENT_CERT: { get_property: [SELF, client_cert] }
-            CLIENT_KEY: { get_property: [SELF, client_key] }
-            SERVER: { get_property: [SELF, server] }
-            NAMESPACE: { get_property: [SELF, namespace] }
-          implementation: scripts/cancel.sh
-
-  org.alien4cloud.k8s.spark.jobs.PythonSparkJob:
-    derived_from: org.alien4cloud.k8s.spark.jobs.AbstractSparkJob
-    description: |
-      Spark Jobs on K8S.
-    metadata:
-      icon: /images/spark.png
-    properties:
-      py_file:
-        type: string
-        required: true
-        description: |
-          the python file that implements the job
-    interfaces:
-      tosca.interfaces.node.lifecycle.Runnable:
-        submit:
-          inputs:
-            CA_CERT: { get_property: [SELF, ca_cert] }
-            CLIENT_CERT: { get_property: [SELF, client_cert] }
-            CLIENT_KEY: { get_property: [SELF, client_key] }
-            SERVER: { get_property: [SELF, server] }
-            NAMESPACE: { get_property: [SELF, namespace] }
-            CONTAINER_NAME: { get_property: [SELF, container_name] }
-            PY_FILE: { get_property: [SELF, py_file] }
-            BATCH_SIZE: { get_property: [SELF, batch_size] }
-            ANNOTATIONS: { get_property: [SELF, annotations] }
-            LABELS: { get_property: [SELF, labels] }
-            ENVIRONMENTS: { get_property: [ SELF, environments]}
-            SECRETS: { get_property: [SELF, secrets] }
-            VOLUMES: { get_property: [SELF, volumes] }
-            PARAMETERS: { get_property: [SELF, parameters]}
-            PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}
-            EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores]}
-            DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
-            EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
-            MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor]}
-          implementation: scripts/submit-python.sh
-        run:
-          inputs:
-            CA_CERT: { get_property: [SELF, ca_cert] }
-            CLIENT_CERT: { get_property: [SELF, client_cert] }
-            CLIENT_KEY: { get_property: [SELF, client_key] }
-            SERVER: { get_property: [SELF, server] }
-            NAMESPACE: { get_property: [SELF, namespace] }
-          implementation: scripts/run.sh
-        cancel:
-          inputs:
-            CA_CERT: { get_property: [SELF, ca_cert] }
-            CLIENT_CERT: { get_property: [SELF, client_cert] }
-            CLIENT_KEY: { get_property: [SELF, client_key] }
-            SERVER: { get_property: [SELF, server] }
-            NAMESPACE: { get_property: [SELF, namespace] }
-          implementation: scripts/cancel.sh
-
-  org.alien4cloud.k8s.spark.jobs.static.AbstractSparkJob:
-    abstract: true
-    derived_from: org.alien4cloud.nodes.Job
-    description: |
-      Abstract Spark Jobs on K8S.
-    metadata:
-      icon: /images/spark.png
-    properties:
       var_values:
         type: map
         required: false
@@ -434,27 +187,27 @@ node_types:
             PARAMETER_FILE: { get_attribute: [SELF, parameter_file] }
             CONFIG_FILE: { get_attribute: [SELF, config_file_path] }
             debug_operations: { get_property: [SELF, debug_operations] }
-          implementation: scripts_static/delete.sh
+          implementation: scripts/delete.sh
       tosca.interfaces.node.lifecycle.Runnable:
         run:
           inputs:
             NAMESPACE: { get_property: [SELF, namespace] }
             KUBECONFIG_FILE: { get_attribute: [SELF, kube_config_file_path] }
             debug_operations: { get_property: [SELF, debug_operations] }
-          implementation: scripts_static/run.sh
+          implementation: scripts/run.sh
     artifacts:
       - config:
-          file: playbook/configure.yml
-          type: tosca.artifacts.File
+          file: config/config.ja
+          type: org.alien4cloud.artifacts.GangjaConfig
       - kube_config:
-          file: config/kube_conf.j2
-          type: tosca.artifacts.File
+          file: config/kube_conf.ja
+          type: org.alien4cloud.artifacts.GangjaConfig
       - common:
           type: tosca.artifacts.File
-          file: scripts_static/submit-common.sh
+          file: scripts/submit-common.sh
 
-  org.alien4cloud.k8s.spark.jobs.static.JavaSparkJob:
-    derived_from: org.alien4cloud.k8s.spark.jobs.static.AbstractSparkJob
+  org.alien4cloud.k8s.spark.jobs.JavaSparkJob:
+    derived_from: org.alien4cloud.k8s.spark.jobs.AbstractSparkJob
     description: |
       Spark Jobs on K8S.
     metadata:
@@ -495,21 +248,51 @@ node_types:
             EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores] }
             MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor] }
             debug_operations: { get_property: [SELF, debug_operations] }
-          implementation: scripts_static/submit-java.sh
+          implementation: scripts/submit-java.sh
 
-  org.alien4cloud.k8s.spark.jobs.static.PythonSparkJob:
-    derived_from: org.alien4cloud.k8s.spark.jobs.static.AbstractSparkJob
+  org.alien4cloud.k8s.spark.jobs.PythonSparkJob:
+    derived_from: org.alien4cloud.k8s.spark.jobs.AbstractSparkJob
     description: |
-      Spark Jobs on K8S.
+      Python Jobs on K8S
     metadata:
-      icon: /images/spark.png
+      icon: /images/python.png
     properties:
-      py_file:
+#      py_file:
+#        type: string
+#        required: true
+#        description: |
+#          the python file that implements the job
+      pythonVersion:
         type: string
-        required: true
+        required: false
         description: |
-          the python file that implements the job
+          The python version (spark.kubernetes.pyspark.pythonVersion)
+    attributes:
+      kube_config_file_path: { get_operation_output: [SELF, Standard, configure, KUBE_CONFIG_FILE_PATH] }
+      config_file_path: { get_operation_output: [SELF, Standard, configure, CONFIG_FILE_PATH] }
+      python_config_args_file_path: { get_operation_output: [SELF, Standard, configure, PYTHON_CONFIG_ARGS_FILE_PATH] }
+    artifacts:
+      - kube_config:
+          file: config/kube_conf.ja
+          type: org.alien4cloud.artifacts.GangjaConfig
+      - config_args:
+          file: config/config.ja
+          type: org.alien4cloud.artifacts.GangjaConfig
+      - config:
+          file: config/config.ja
+          type: org.alien4cloud.artifacts.GangjaConfig
     interfaces:
+      Standard:
+        configure:
+          inputs:
+            var_values: { get_property: [ SELF, var_values ] }
+            CA_CERT: { get_property: [SELF, ca_cert] }
+            CLIENT_CERT: { get_property: [SELF, client_cert] }
+            CLIENT_KEY: { get_property: [SELF, client_key] }
+            SERVER: { get_property: [SELF, server] }
+            NAMESPACE: { get_property: [SELF, namespace] }
+            debug_operations: { get_property: [SELF, debug_operations] }
+          implementation: playbook/configure_python.yml
       tosca.interfaces.node.lifecycle.Runnable:
         submit:
           inputs:
@@ -519,7 +302,7 @@ node_types:
             SERVER: { get_property: [SELF, server] }
             NAMESPACE: { get_property: [SELF, namespace] }
             CONTAINER_NAME: { get_property: [SELF, container_name] }
-            PY_FILE: { get_attribute: [SELF, py_file] }
+            #PY_FILE: { get_attribute: [SELF, py_file] }
             BATCH_SIZE: { get_property: [SELF, batch_size] }
             ANNOTATIONS: { get_property: [SELF, annotations] }
             LABELS: { get_property: [SELF, labels] }
@@ -533,4 +316,6 @@ node_types:
             EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
             MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor]}
             debug_operations: { get_property: [SELF, debug_operations] }
-          implementation: scripts_static/submit-python.sh
+            PYTHON_CONFIG_ARGS_FILE_PATH: { get_attribute: [SELF, python_config_args_file_path] }
+            PYTHON_VERSION: { get_property: [SELF, pythonVersion] }
+          implementation: scripts/submit-python.sh

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 export TOSCA_JOB_ID="$(uuidgen)"
 
@@ -105,18 +105,22 @@ function do_submit() {
   # Add Parameters from properties
   echo $PARAMETERS | jq -r '.[]' >> $PARAM_FILE
 
+  submitCmd="spark-submit $(cat $PARAM_FILE | tr '\n' ' ')"
+
   if [ "$debug_operations" == "true" ]; then
     echo "PARAM_FILE is $PARAM_FILE"
-    cat $PARAM_FILE
-    echo "submit command : spark-submit $(cat $PARAM_FILE | tr '\n' ' ')"
+    #cat $PARAM_FILE
+    echo "submit command : $submitCmd"
   fi
-
-  cat $PARAM_FILE | tr '\n' '\0' | xargs -0 spark-submit
+  eval "$submitCmd"
+  #cat $PARAM_FILE | tr '\n' ' ' | xargs -0 spark-submit
 }
 
 function do_cleanup() {
-  rm -f $CA_CERT_FILE
-  rm -f $CLIENT_CERT_FILE
-  rm -f $CLIENT_KEY_FILE
-  rm -f $PARAM_FILE
+  if [ "$debug_operations" != "true" ]; then
+    rm -f $CA_CERT_FILE
+    rm -f $CLIENT_CERT_FILE
+    rm -f $CLIENT_KEY_FILE
+    rm -f $PARAM_FILE
+  fi
 }

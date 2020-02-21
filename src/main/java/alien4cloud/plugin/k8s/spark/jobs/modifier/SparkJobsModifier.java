@@ -44,8 +44,6 @@ public class SparkJobsModifier extends TopologyModifierSupport {
     // TODO: use constant from K8S plugin
     public static final String K8S_TYPES_KUBE_CLUSTER = "org.alien4cloud.kubernetes.api.types.nodes.KubeCluster";
     public static final String K8S_TYPES_SPARK_JOBS = "org.alien4cloud.k8s.spark.jobs.AbstractSparkJob";
-    // TODO: only use static
-    public static final String K8S_TYPES_SPARK_JOBS_STATIC = "org.alien4cloud.k8s.spark.jobs.static.AbstractSparkJob";
 
     public static final String K8S_TYPES_SIMPLE_RESOURCE = "org.alien4cloud.kubernetes.api.types.SimpleResource";
 
@@ -132,9 +130,6 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         Csar csar = new Csar(topology.getArchiveName(), topology.getArchiveVersion());;
 
         Set<NodeTemplate> jobs = TopologyNavigationUtil.getNodesOfType(topology, K8S_TYPES_SPARK_JOBS, true);
-        // TODO: only use static
-        jobs.addAll(TopologyNavigationUtil.getNodesOfType(topology, K8S_TYPES_SPARK_JOBS_STATIC, true));
-
 
         String k8sYamlConfig = (String) context.getExecutionCache().get(K8S_TYPES_KUBE_CLUSTER);
         String nsNodeName = (String) context.getExecutionCache().get(NAMESPACE_RESOURCE_NAME);

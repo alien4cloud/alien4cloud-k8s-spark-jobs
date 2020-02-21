@@ -1,4 +1,4 @@
-- name: Use jinja to replace vars in the config file
+- name: Configure Python Spark job
   hosts: all
   strategy: linear
   become: false
@@ -30,18 +30,18 @@
       set_fact:
         CONFIG_FILE_PATH: "{{ config_file.path }}"
 
-    - name: Here is the file
+    - name: Here is the config file path
       debug:
         var: CONFIG_FILE_PATH
       when: debug_operations is defined and debug_operations == "true"
 
-    - name: Create temporary file to store kube config file
+    - name: Create temporary file to store KUBE config file
       tempfile:
         state: file
         suffix: kube_config_file
       register: kube_config_file
 
-    - name: Render kube config in temp directory using Jinja
+    - name: Render KUBE config in temp directory using Jinja
       template:
         src: "{{ kube_config }}"
         dest: "{{ kube_config_file.path }}"
@@ -50,3 +50,32 @@
     - name: Set the attribute KUBE_CONFIG_FILE_PATH
       set_fact:
         KUBE_CONFIG_FILE_PATH: "{{ kube_config_file.path }}"
+
+    - name: Check if config ARGS file exist
+      stat:
+        path: "{{ config_args }}"
+      register: config_args_file_stat
+
+    - name: Here is the config ARGS file
+      debug:
+        var: config_args_file_stat
+      when: debug_operations is defined and debug_operations == "true"
+
+    - name: Create temporary file to store config ARGS file
+      tempfile:
+        state: file
+        suffix: config_arg_file
+      register: config_arg_file
+      when: config_args_file_stat.stat.exists
+
+    - name: Render config ARGS file in temp directory using Jinja
+      template:
+        src: "{{ config_args }}"
+        dest: "{{ config_arg_file.path }}"
+        force: yes
+      when: config_args_file_stat.stat.exists
+
+    - name: Set the attribute PYTHON_CONFIG_ARGS_FILE_PATH
+      set_fact:
+        PYTHON_CONFIG_ARGS_FILE_PATH: "{{ config_arg_file.path }}"
+      when: config_args_file_stat.stat.exists
