@@ -46,17 +46,17 @@ spark.hadoop.dfs.client.use.datanode.hostname=true
 spark.kubernetes.container.image.pullPolicy=IfNotPresent
 EOF
 
-# Output ANNOTATIONS
-echo $ANNOTATIONS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.annotation.\(.key)=\(.value)","--conf", "spark.kubernetes.executor.annotation.\(.key)=\(.value)"]) | flatten | .[]' >> $PARAM_FILE
+# Output ANNOTATIONSww
+echo $ANNOTATIONS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.annotation.\(.key)=\"\(.value)\"","--conf", "spark.kubernetes.executor.annotation.\(.key)=\"\(.value)\""]) | flatten | .[]' >> $PARAM_FILE
 
 # Output ANNOTATIONS
-echo $LABELS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.label.\(.key)=\(.value)","--conf", "spark.kubernetes.executor.label.\(.key)=\(.value)"]) | flatten | .[]' >> $PARAM_FILE
+echo $LABELS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.label.\(.key)=\"\(.value)\"","--conf", "spark.kubernetes.executor.label.\(.key)=\"\(.value)\""]) | flatten | .[]' >> $PARAM_FILE
 
 # Output ENVIRONMENTS
 echo $ENVIRONMENTS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driverEnv.\(.key)=\(.value)"]) | flatten | .[]' >> $PARAM_FILE
 
 # Output SECRETS
-echo $SECRETS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.secrets.\(.key)=\(.value)","--conf", "spark.kubernetes.executor.secrets.\(.key)=\(.value)"]) | flatten | .[]' >> $PARAM_FILE
+echo $SECRETS | jq -r 'to_entries | map(["--conf", "spark.kubernetes.driver.secrets.\(.key)=\(.value)","--conf", "spark.kubernetes.executor.secrets.\(.key)=\"\(.value)\""]) | flatten | .[]' >> $PARAM_FILE
 
 # Output Mounts
 echo $VOLUMES | jq -r 'map(["--conf","spark.kubernetes.executor.volumes.\(.type).\(.name).mount.path=\(.mountPath)","--conf","spark.kubernetes.driver.volumes.\(.type).\(.name).mount.path=\(.mountPath)"]) | flatten | .[]' >> $PARAM_FILE
