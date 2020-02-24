@@ -8,7 +8,6 @@ metadata:
 imports:
   - tosca-normative-types:1.0.0-ALIEN20
   - alien-base-types:3.0.0-SNAPSHOT
-  - yorc-types:1.1.0
 
 description: >
   Spark Jobs on k8s types.
