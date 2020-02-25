@@ -12,3 +12,4 @@ component_descriptors:
       Insert this modifier to post-matched-node-setup phase after the kubernetes modifier.
 dependencies:
   - alien4cloud-kubernetes-plugin
+  - alien4cloud-yorc-provider
