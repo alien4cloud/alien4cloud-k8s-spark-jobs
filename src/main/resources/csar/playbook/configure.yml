@@ -42,7 +42,7 @@
     - name: Here is the file
       debug:
         var: CONFIG_FILE_PATH
-      when: config_stat.stat.exists and and debug_operations is defined and debug_operations == "true"
+      when: config_stat.stat.exists and debug_operations is defined and debug_operations == "true"
 
     - name: Create temporary file to store kube config file
       tempfile:
