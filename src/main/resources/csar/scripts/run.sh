@@ -1,4 +1,7 @@
-#!/bin/bash -e
+#!/bin/bash
+
+# set exit on error
+set -e
 
 statusCmd="kubectl --kubeconfig ${KUBECONFIG_FILE} -n ${NAMESPACE} get po -l job_id=${TOSCA_JOB_ID} --no-headers -o custom-columns=:.status.phase"
 if [ "$debug_operations" == "true" ]; then

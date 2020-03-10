@@ -1,4 +1,7 @@
-#!/bin/bash -e
+#!/bin/bash
+
+# set exit on error
+set -e
 
 source $common
 

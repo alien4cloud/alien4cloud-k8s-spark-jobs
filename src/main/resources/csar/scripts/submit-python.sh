@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+# set exit on error
+set -e
+
 source $common
 
 pre_submit

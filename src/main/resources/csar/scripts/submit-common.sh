@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 export TOSCA_JOB_ID="$(uuidgen)"
 
