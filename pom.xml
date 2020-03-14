@@ -155,7 +155,7 @@
                 </execution>
               </executions>
             </plugin>
-            <plugin>
+<!--            <plugin>
               <groupId>com.google.code.maven-replacer-plugin</groupId>
               <artifactId>maven-replacer-plugin</artifactId>
               <version>1.4.0</version>
@@ -185,7 +185,7 @@
                   </replacement>
                 </replacements>
               </configuration>
-            </plugin>
+            </plugin>-->
             <plugin>
               <groupId>org.codehaus.mojo</groupId>
               <artifactId>templating-maven-plugin</artifactId>
