@@ -12,12 +12,6 @@
     <name>Spark Jobs on K8S Plugin</name>
     <version>3.0.0-SNAPSHOT</version>
 
-    <properties>
-        <alien4cloud.dsl.version>alien_dsl_2_0_0</alien4cloud.dsl.version>
-        <tosca.normative.types.version>1.0.0-ALIEN20</tosca.normative.types.version>
-        <alien4cloud.kubernetes.api.version>${project.version}</alien4cloud.kubernetes.api.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>alien4cloud</groupId>
