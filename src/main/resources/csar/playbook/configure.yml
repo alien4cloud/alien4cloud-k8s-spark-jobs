@@ -24,6 +24,7 @@
       tempfile:
         state: file
         suffix: temp
+        prefix: "{{ ansible_env.HOME }}/tmp/"
       register: config_file
       when: config_stat.stat.exists
 
@@ -48,6 +49,7 @@
       tempfile:
         state: file
         suffix: kube_config_file
+        prefix: "{{ ansible_env.HOME }}/tmp/"
       register: kube_config_file
 
     - name: Render kube config in temp directory using Jinja
