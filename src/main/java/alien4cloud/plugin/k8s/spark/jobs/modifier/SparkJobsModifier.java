@@ -99,7 +99,8 @@ public class SparkJobsModifier extends TopologyModifierSupport {
     public void process(Topology topology, FlowExecutionContext context) {
         try {
             WorkflowValidator.disableValidationThreadLocal.set(true);
-            doProcess(topology, context);
+
+            boolean updated = doProcess(topology, context);
 
             TopologyContext topologyContext = workflowBuilderService.buildCachedTopologyContext(new TopologyContext() {
                 @Override
@@ -118,7 +119,10 @@ public class SparkJobsModifier extends TopologyModifierSupport {
                 }
             });
 
-            workflowSimplifyService.reentrantSimplifyWorklow(topologyContext, topology.getWorkflows().keySet());
+            if (updated) {
+                workflowSimplifyService.simplifyWorkflow(topologyContext, topology.getWorkflows().keySet());
+            }
+
         } catch (Exception e) {
             log.warn("Can't process k8s-spark-jobs modifier:", e);
         } finally {
@@ -126,7 +130,7 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         }
     }
 
-    protected void doProcess(Topology topology,FlowExecutionContext context) {
+    protected boolean doProcess(Topology topology,FlowExecutionContext context) {
         Csar csar = new Csar(topology.getArchiveName(), topology.getArchiveVersion());;
 
         Set<NodeTemplate> jobs = TopologyNavigationUtil.getNodesOfType(topology, K8S_TYPES_SPARK_JOBS, true);
@@ -139,7 +143,7 @@ public class SparkJobsModifier extends TopologyModifierSupport {
             if (log.isDebugEnabled()) {
                 log.debug("No spark Job detected, nothin to do");
             }
-            return;
+            return false;
         }
 
         K8sConfig k8sConfig = null;
@@ -149,14 +153,14 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         } else {
             log.error("No Kubernetes config found");
             context.log().error("No Kubernetes config found");
-            return;
+            return false;
         }
 
         Optional<K8sContext> k8sContext = k8sConfig.getContext(k8sConfig.getCurrentContext());
         if (!k8sContext.isPresent()) {
             log.error("Invalid k8s configuration");
             context.log().error("Invalid k8s configuration");
-            return;
+            return false;
         }
 
         Optional<K8sCluster> k8sCluster = k8sConfig.getCluster(k8sContext.get().getCluster());
@@ -164,7 +168,7 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         if ((!k8sCluster.isPresent())||(!k8sUser.isPresent())) {
             log.error("Invalid k8s configuration");
             context.log().error("Invalid k8s configuration");
-            return;
+            return false;
         }
 
         // Add Resources
@@ -176,6 +180,8 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         }
 
         jobs.forEach(job -> manageJob(job,csar,topology,k8sContext.get(),k8sCluster.get(),k8sUser.get(),nsNodeName));
+
+        return true;
     }
 
     protected void manageJob(NodeTemplate job,Csar csar,Topology topology,K8sContext k8sContext,K8sCluster k8sCluster,K8sUser k8sUser,String nsNodeName) {
