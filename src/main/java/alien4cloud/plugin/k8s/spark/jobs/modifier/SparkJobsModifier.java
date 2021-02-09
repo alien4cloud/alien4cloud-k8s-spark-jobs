@@ -151,8 +151,8 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         // Add Resources
         if (nsNodeName != null) {
             // When No Namespace Manager, role sa and rb must be preconfigured
-            addRole(csar, topology, nsNodeName, k8sYamlConfig);
-            addServiceAccount(csar, topology, nsNodeName, k8sYamlConfig);
+            addRole(csar, topology, nsNodeName, k8sYamlConfig, k8sContext.get().getNamespace());
+            addServiceAccount(csar, topology, nsNodeName, k8sYamlConfig, k8sContext.get().getNamespace());
             addRoleBinding(csar, topology, nsNodeName, k8sYamlConfig, k8sContext.get().getNamespace());
         }
 
@@ -198,7 +198,7 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         return Version.K8S_CSAR_VERSION;
     }
 
-    protected void addRole(Csar csar,Topology topology,String nsNodeName,String k8sYamlConfig) {
+    protected void addRole(Csar csar,Topology topology,String nsNodeName,String k8sYamlConfig,String namespace) {
         NodeTemplate role = addNodeTemplate(csar, topology, ROLE_NAME, K8S_TYPES_SIMPLE_RESOURCE, getK8SCsarVersion(topology));
 
         setNodePropertyPathValue(csar,topology,role,"resource_type",new ScalarPropertyValue("role"));
@@ -207,13 +207,17 @@ public class SparkJobsModifier extends TopologyModifierSupport {
 
         setNodePropertyPathValue(csar, topology, role, "kube_config" ,new ScalarPropertyValue(k8sYamlConfig));
 
+        if (StringUtils.isNotEmpty(namespace)) {
+            setNodePropertyPathValue(csar, topology, role, "namespace", new ScalarPropertyValue(namespace));
+        }
+
         // Add a dependency relation to namespace node if any
         if (StringUtils.isNotEmpty(nsNodeName)) {
             addRelationshipTemplate(csar,topology,role,nsNodeName,NormativeRelationshipConstants.DEPENDS_ON,"dependency", "feature");
         }
     }
 
-    protected void addServiceAccount(Csar csar,Topology topology,String nsNodeName,String k8sYamlConfig) {
+    protected void addServiceAccount(Csar csar,Topology topology,String nsNodeName,String k8sYamlConfig,String namespace) {
         NodeTemplate sa = addNodeTemplate(csar, topology, SERVICEACCOUNT_NAME, K8S_TYPES_SIMPLE_RESOURCE, getK8SCsarVersion(topology));
 
         setNodePropertyPathValue(csar,topology,sa,"resource_type",new ScalarPropertyValue("serviceaccount"));
@@ -221,6 +225,10 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         setNodePropertyPathValue(csar,topology,sa,"resource_spec",new ScalarPropertyValue(yamlServiceAccount));
 
         setNodePropertyPathValue(csar, topology, sa, "kube_config" ,new ScalarPropertyValue(k8sYamlConfig));
+
+        if (StringUtils.isNotEmpty(namespace)) {
+            setNodePropertyPathValue(csar, topology, sa, "namespace", new ScalarPropertyValue(namespace));
+        }
 
         // Add a dependency relation to namespace node if any
         if (StringUtils.isNotEmpty(nsNodeName)) {
@@ -238,6 +246,10 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         setNodePropertyPathValue(csar,topology,sa,"resource_spec",new ScalarPropertyValue(yamlResource));
 
         setNodePropertyPathValue(csar, topology, sa, "kube_config" ,new ScalarPropertyValue(k8sYamlConfig));
+
+        if (StringUtils.isNotEmpty(namespace)) {
+            setNodePropertyPathValue(csar, topology, sa, "namespace", new ScalarPropertyValue(namespace));
+        }
 
         // Add a dependency relation to namespace node if any
         if (StringUtils.isNotEmpty(nsNodeName)) {
