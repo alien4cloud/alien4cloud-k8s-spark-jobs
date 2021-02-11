@@ -319,3 +319,316 @@ node_types:
             PYTHON_CONFIG_ARGS_FILE_PATH: { get_attribute: [SELF, python_config_args_file_path] }
             PYTHON_VERSION: { get_property: [SELF, pythonVersion] }
           implementation: scripts/submit-python.sh
+
+  org.alien4cloud.k8s.spark.jobs.AbstractSpark3Job:
+    abstract: true
+    derived_from: org.alien4cloud.k8s.spark.jobs.AbstractSparkJob
+    description: |
+      Abstract Spark Jobs on K8S.
+    metadata:
+      icon: /images/spark.png
+    properties:
+      context:
+        type: string
+        required: false
+        description: |
+         The context from the user Kubernetes configuration file used for the initial auto-configuration of the Kubernetes client library.
+      driver_master:
+        type: string
+        required: false
+        description: |
+         Internal Kubernetes master (API server) address to be used for driver to request executors.
+      annotations_service_driver:
+        type: map
+        required: false
+        entry_schema:
+          type: string
+        description: |
+          Annotations to add on driver service
+      driver_request_cores:
+        type: string
+        required: false
+        description: |
+          The cpu request for the driver pod
+      local_dirs_tmpfs:
+        type: string
+        required: false
+        description: |
+           EmptyDir volumes configuration used to back SPARK_LOCAL_DIRS within the Spark driver and executor pods to use tmpfs backing
+      kerberos_krb5_path:
+        type: string
+        required: false
+        description: |
+           Specify the local location of the krb5.conf file to be mounted on the driver and executors for Kerberos interaction
+      kerberos_krb5_config_map_name:
+        type: string
+        required: false
+        description: |
+           Specify the name of the ConfigMap, containing the krb5.conf file, to be mounted on the driver and executors for Kerberos interaction
+      hadoop_config_map_name:
+        type: string
+        required: false
+        description: |
+           Specify the name of the ConfigMap, containing the HADOOP_CONF_DIR files, to be mounted on the driver and executors for custom Hadoop configuration
+      kerberos_token_secret_name:
+        type: string
+        required: false
+        description: |
+           Specify the name of the secret where your existing delegation tokens are stored. This removes the need for the job user to provide any kerberos credentials for launching a job
+      kerberos_token_item_key:
+        type: string
+        required: false
+        description: |
+           Specify the item key of the data where your existing delegation tokens are stored. This removes the need for the job user to provide any kerberos credentials for launching a job.
+      driver_pod_template_container_name:
+        type: string
+        required: false
+        description: |
+           Specify the container name to be used as a basis for the driver in the given pod template.
+      executor_pod_template_container_name:
+        type: string
+        required: false
+        description: |
+           Specify the container name to be used as a basis for the executor in the given pod template
+      executor_delete_on_termination:
+        type: boolean
+        default: true
+        description: |
+           Specify whether executor pods should be deleted in case of failure or normal termination.
+      submission_connection_timeout:
+        type: integer
+        default: 10000
+        description: |
+           Specify whether executor pods should be deleted in case of failure or normal termination.
+      submission_request_timeout:
+        type: integer
+        default: 10000
+        description: |
+           Request timeout in milliseconds for the kubernetes client to use for starting the driver.
+      driver_connection_timeout:
+        type: integer
+        default: 10000
+        description: |
+           Connection timeout in milliseconds for the kubernetes client in driver to use when requesting executors.
+      driver_request_timeout:
+        type: integer
+        default: 10000
+        description: |
+           Request timeout in milliseconds for the kubernetes client in driver to use when requesting executors.
+      app_kill_pod_deletion_grace_period:
+        type: integer
+        required: false
+        description: |
+           Specify the grace period in seconds when deleting a Spark application using spark-submit.
+      file_upload_path:
+        type: string
+        required: false
+        description: |
+           Path to store files at the spark submit side in cluster mode.                                
+    attributes:
+      driver_pod_template_file_path: { get_operation_output: [SELF, Standard, configure, DRIVER_POD_TEMPLATE_FILE_PATH] }
+      executor_pod_template_file_path: { get_operation_output: [SELF, Standard, configure, EXECUTOR_POD_TEMPLATE_FILE_PATH] }
+      kube_config_file_path: { get_operation_output: [SELF, Standard, configure, KUBE_CONFIG_FILE_PATH] }
+      config_file_path: { get_operation_output: [SELF, Standard, configure, CONFIG_FILE_PATH] }      
+      parameter_file: { get_operation_output: [ SELF, Standard, create, PARAMETER_FILE ] }
+    interfaces:
+      Standard:
+        create:
+          implementation: scripts/create.sh
+        configure:
+          inputs:
+            var_values: { get_property: [ SELF, var_values ] }
+            CA_CERT: { get_property: [SELF, ca_cert] }
+            CLIENT_CERT: { get_property: [SELF, client_cert] }
+            CLIENT_KEY: { get_property: [SELF, client_key] }
+            SERVER: { get_property: [SELF, server] }
+            NAMESPACE: { get_property: [SELF, namespace] }
+            debug_operations: { get_property: [SELF, debug_operations] }
+          implementation: playbook/configure-spark3.yml
+        delete:
+          inputs:
+            KUBECONFIG_FILE: { get_attribute: [SELF, kube_config_file_path] }
+            DRIVER_POD_TEMPLATE_FILE: { get_attribute: [SELF, driver_pod_template_file_path] }
+            EXECUTOR_POD_TEMPLATE_FILE: { get_attribute: [SELF, executor_pod_template_file_path] }
+            PARAMETER_FILE: { get_attribute: [SELF, parameter_file] }
+            CONFIG_FILE: { get_attribute: [SELF, config_file_path] }
+            debug_operations: { get_property: [SELF, debug_operations] }
+          implementation: scripts/delete-spark3.sh
+      tosca.interfaces.node.lifecycle.Runnable:
+        run:
+          inputs:
+            NAMESPACE: { get_property: [SELF, namespace] }
+            KUBECONFIG_FILE: { get_attribute: [SELF, kube_config_file_path] }
+            debug_operations: { get_property: [SELF, debug_operations] }
+          implementation: scripts/run.sh
+    artifacts:
+      - driver_pod_template:
+          file: config/driverpodtemplate.ja
+          type: org.alien4cloud.artifacts.GangjaConfig
+          description: Specify the local file that contains the driver pod template
+      - executor_pod_template:
+          file: config/executorpodtemplate.ja
+          type: org.alien4cloud.artifacts.GangjaConfig
+          description: Specify the local file that contains the executor pod template
+
+
+  org.alien4cloud.k8s.spark.jobs.JavaSpark3Job:
+    derived_from: org.alien4cloud.k8s.spark.jobs.AbstractSpark3Job
+    description: |
+      Spark3 Jobs on K8S.
+    metadata:
+      icon: /images/spark.png
+    properties:
+      java_class:
+        type: string
+        required: true
+        description: |
+          the java class that implements the job
+      jar_file:
+        type: string
+        required: true
+        description: |
+          the jar file that implements the job
+    interfaces:
+      tosca.interfaces.node.lifecycle.Runnable:
+        submit:
+          inputs:
+            CA_CERT: { get_property: [SELF, ca_cert] }
+            CLIENT_CERT: { get_property: [SELF, client_cert] }
+            CLIENT_KEY: { get_property: [SELF, client_key] }
+            SERVER: { get_property: [SELF, server] }
+            NAMESPACE: { get_property: [SELF, namespace] }
+            CONTAINER_NAME: { get_property: [SELF, container_name] }
+            JAR_FILE: { get_attribute: [SELF, jar_file] }
+            JAVA_CLASS: { get_property: [SELF, java_class] }
+            BATCH_SIZE: { get_property: [SELF, batch_size] }
+            ANNOTATIONS: { get_property: [SELF, annotations] }
+            LABELS: { get_property: [SELF, labels] }
+            ENVIRONMENTS: { get_property: [ SELF, environments] }
+            SECRETS: { get_property: [SELF, secrets] }
+            VOLUMES: { get_property: [SELF, volumes] }
+            PARAMETERS: { get_property: [SELF, parameters] }
+            PARAMETER_FILE: { get_attribute: [SELF, parameter_file] }
+            EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores] }
+            DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
+            EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores] }
+            MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor] }
+            CONTEXT: { get_property: [SELF, context] }
+            DRIVER_MASTER: { get_property: [SELF, driver_master] }
+            ANNOTATIONS_SERVICE_DRIVER: { get_property: [SELF, annotations_service_driver] }
+            DRIVER_REQUEST_CORES: { get_property: [SELF, driver_request_cores] }
+            LOCAL_DIRS_TMPFS: { get_property: [SELF, local_dirs_tmpfs] }
+            KERBEROS_KRB5_PATH: { get_property: [SELF, kerberos_krb5_path] }
+            KERBEROS_KRB5_CONFIG_MAP_NAME: { get_property: [SELF, kerberos_krb5_config_map_name] }
+            HADOOP_CONFIG_MAP_NAME: { get_property: [SELF, hadoop_config_map_name] }
+            KERBEROS_TOKEN_SECRET_NAME: { get_property: [SELF, kerberos_token_secret_name] }
+            KERBEROS_TOKEN_ITEM_KEY: { get_property: [SELF, kerberos_token_item_key] }
+            DRIVER_POD_TEMPLATE_CONTAINER_NAME: { get_property: [SELF, driver_pod_template_container_name] }
+            EXECUTOR_POD_TEMPLATE_CONTAINER_NAME: { get_property: [SELF, executor_pod_template_container_name] }
+            EXECUTOR_DELETE_ON_TERMINATION: { get_property: [SELF, executor_delete_on_termination] }
+            SUBMISSION_CONNECTION_TIMEOUT: { get_property: [SELF, submission_connection_timeout] }
+            SUBMISSION_REQUEST_TIMEOUT: { get_property: [SELF, submission_request_timeout] }
+            DRIVER_CONNECTION_TIMEOUT: { get_property: [SELF, driver_connection_timeout] }
+            DRIVER_REQUEST_TIMEOUT: { get_property: [SELF, driver_request_timeout] }
+            APP_KILL_POD_DELETION_GRACE_PERIOD: { get_property: [SELF, app_kill_pod_deletion_grace_period] }
+            FILE_UPLOAD_PATH: { get_property: [SELF, file_upload_path] }  
+            POD_DRIVER_TEMPLATE: { get_attribute: [SELF, driver_pod_template_file_path] } 
+            POD_EXECUTOR_TEMPLATE: { get_attribute: [SELF, executor_pod_template_file_path] } 
+            debug_operations: { get_property: [SELF, debug_operations] }
+          implementation: scripts/submit-java.sh
+
+  org.alien4cloud.k8s.spark.jobs.PythonSpark3Job:
+    derived_from: org.alien4cloud.k8s.spark.jobs.AbstractSpark3Job
+    description: |
+      Python Jobs on K8S
+    metadata:
+      icon: /images/python.png
+    properties:
+#      py_file:
+#        type: string
+#        required: true
+#        description: |
+#          the python file that implements the job
+      pythonVersion:
+        type: string
+        required: false
+        description: |
+          The python version (spark.kubernetes.pyspark.pythonVersion)
+    attributes:
+      kube_config_file_path: { get_operation_output: [SELF, Standard, configure, KUBE_CONFIG_FILE_PATH] }
+      config_file_path: { get_operation_output: [SELF, Standard, configure, CONFIG_FILE_PATH] }
+      python_config_args_file_path: { get_operation_output: [SELF, Standard, configure, PYTHON_CONFIG_ARGS_FILE_PATH] }
+      driver_pod_template_file_path: { get_operation_output: [SELF, Standard, configure, DRIVER_POD_TEMPLATE_FILE_PATH] }
+      executor_pod_template_file_path: { get_operation_output: [SELF, Standard, configure, EXECUTOR_POD_TEMPLATE_FILE_PATH] }      
+    artifacts:
+      - kube_config:
+          file: config/kube_conf.ja
+          type: org.alien4cloud.artifacts.GangjaConfig
+      - config_args:
+          file: config/config.ja
+          type: org.alien4cloud.artifacts.GangjaConfig
+      - config:
+          file: config/config.ja
+          type: org.alien4cloud.artifacts.GangjaConfig
+          
+    interfaces:
+      Standard:
+        configure:
+          inputs:
+            var_values: { get_property: [ SELF, var_values ] }
+            CA_CERT: { get_property: [SELF, ca_cert] }
+            CLIENT_CERT: { get_property: [SELF, client_cert] }
+            CLIENT_KEY: { get_property: [SELF, client_key] }
+            SERVER: { get_property: [SELF, server] }
+            NAMESPACE: { get_property: [SELF, namespace] }
+            debug_operations: { get_property: [SELF, debug_operations] }
+          implementation: playbook/configure_python-spark3.yml
+      tosca.interfaces.node.lifecycle.Runnable:
+        submit:
+          inputs:
+            CA_CERT: { get_property: [SELF, ca_cert] }
+            CLIENT_CERT: { get_property: [SELF, client_cert] }
+            CLIENT_KEY: { get_property: [SELF, client_key] }
+            SERVER: { get_property: [SELF, server] }
+            NAMESPACE: { get_property: [SELF, namespace] }
+            CONTAINER_NAME: { get_property: [SELF, container_name] }
+            #PY_FILE: { get_attribute: [SELF, py_file] }
+            BATCH_SIZE: { get_property: [SELF, batch_size] }
+            ANNOTATIONS: { get_property: [SELF, annotations] }
+            LABELS: { get_property: [SELF, labels] }
+            ENVIRONMENTS: { get_property: [ SELF, environments]}
+            SECRETS: { get_property: [SELF, secrets] }
+            VOLUMES: { get_property: [SELF, volumes] }
+            PARAMETERS: { get_property: [SELF, parameters]}
+            PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}
+            EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores]}
+            DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
+            EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
+            MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor]}
+            debug_operations: { get_property: [SELF, debug_operations] }
+            PYTHON_CONFIG_ARGS_FILE_PATH: { get_attribute: [SELF, python_config_args_file_path] }
+            PYTHON_VERSION: { get_property: [SELF, pythonVersion] }
+            CONTEXT: { get_property: [SELF, context] }
+            DRIVER_MASTER: { get_property: [SELF, driver_master] }
+            ANNOTATIONS_SERVICE_DRIVER: { get_property: [SELF, annotations_service_driver] }
+            DRIVER_REQUEST_CORES: { get_property: [SELF, driver_request_cores] }
+            LOCAL_DIRS_TMPFS: { get_property: [SELF, local_dirs_tmpfs] }
+            KERBEROS_KRB5_PATH: { get_property: [SELF, kerberos_krb5_path] }
+            KERBEROS_KRB5_CONFIG_MAP_NAME: { get_property: [SELF, kerberos_krb5_config_map_name] }
+            HADOOP_CONFIG_MAP_NAME: { get_property: [SELF, hadoop_config_map_name] }
+            KERBEROS_TOKEN_SECRET_NAME: { get_property: [SELF, kerberos_token_secret_name] }
+            KERBEROS_TOKEN_ITEM_KEY: { get_property: [SELF, kerberos_token_item_key] }
+            DRIVER_POD_TEMPLATE_CONTAINER_NAME: { get_property: [SELF, driver_pod_template_container_name] }
+            EXECUTOR_POD_TEMPLATE_CONTAINER_NAME: { get_property: [SELF, executor_pod_template_container_name] }
+            EXECUTOR_DELETE_ON_TERMINATION: { get_property: [SELF, executor_delete_on_termination] }
+            SUBMISSION_CONNECTION_TIMEOUT: { get_property: [SELF, submission_connection_timeout] }
+            SUBMISSION_REQUEST_TIMEOUT: { get_property: [SELF, submission_request_timeout] }
+            DRIVER_CONNECTION_TIMEOUT: { get_property: [SELF, driver_connection_timeout] }
+            DRIVER_REQUEST_TIMEOUT: { get_property: [SELF, driver_request_timeout] }
+            APP_KILL_POD_DELETION_GRACE_PERIOD: { get_property: [SELF, app_kill_pod_deletion_grace_period] }
+            FILE_UPLOAD_PATH: { get_property: [SELF, file_upload_path] }
+            POD_DRIVER_TEMPLATE: { get_attribute: [SELF, driver_pod_template_file_path] } 
+            POD_EXECUTOR_TEMPLATE: { get_attribute: [SELF, executor_pod_template_file_path] } 
+          implementation: scripts/submit-python.sh
+          
+          

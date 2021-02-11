@@ -1,0 +1,147 @@
+- name: Use jinja to replace vars in the config file
+  hosts: all
+  strategy: linear
+  become: false
+
+  tasks:
+
+    - name: Check is config file exists
+      stat:
+        path: "{{ config }}"
+      register: config_stat
+
+    - name: Here is the var_values map
+      debug:
+        var: var_values
+      when: config_stat.stat.exists and debug_operations is defined and debug_operations == "true"
+
+    - name: Define a var named _ that contains the var values
+      set_fact:
+        _: "{{ var_values | from_yaml }}"
+      when: config_stat.stat.exists
+
+    - name: Create temporary file to store config file
+      tempfile:
+        state: file
+        suffix: temp
+        prefix: "{{ ansible_env.HOME }}/tmp/"
+      register: config_file
+      when: config_stat.stat.exists
+
+    - name: Render config in temp directory using Jinja
+      template:
+        src: "{{ config }}"
+        dest: "{{ config_file.path }}"
+        force: yes
+      when: config_stat.stat.exists
+
+    - name: Set the attribute CONFIG_FILE_PATH
+      set_fact:
+        CONFIG_FILE_PATH: "{{ config_file.path }}"
+      when: config_stat.stat.exists
+
+    - name: Here is the file
+      debug:
+        var: CONFIG_FILE_PATH
+      when: config_stat.stat.exists and debug_operations is defined and debug_operations == "true"
+
+    - name: Create temporary file to store kube config file
+      tempfile:
+        state: file
+        suffix: kube_config_file
+        prefix: "{{ ansible_env.HOME }}/tmp/"
+      register: kube_config_file
+
+    - name: Render kube config in temp directory using Jinja
+      template:
+        src: "{{ kube_config }}"
+        dest: "{{ kube_config_file.path }}"
+        force: yes
+
+    - name: Set the attribute KUBE_CONFIG_FILE_PATH
+      set_fact:
+        KUBE_CONFIG_FILE_PATH: "{{ kube_config_file.path }}"
+        
+
+    - name: Check if driver_pod_template file exists
+      stat:
+        path: "{{ driver_pod_template }}"
+      register: driver_pod_template_stat
+
+    - name: Here is the var_values map
+      debug:
+        var: var_values
+      when: driver_pod_template_stat.stat.exists and debug_operations is defined and debug_operations == "true"
+
+    - name: Define a var named _ that contains the var values
+      set_fact:
+        _: "{{ var_values | from_yaml }}"
+      when: driver_pod_template_stat.stat.exists
+
+    - name: Create temporary file to store driver pod template file
+      tempfile:
+        state: file
+        suffix: temp
+        prefix: "{{ ansible_env.HOME }}/tmp/"
+      register: driver_pod_template_file
+      when: driver_pod_template_stat.stat.exists
+
+    - name: Render config in temp directory using Jinja
+      template:
+        src: "{{ driver_pod_template }}"
+        dest: "{{ driver_pod_template_file.path }}"
+        force: yes
+      when: driver_pod_template_stat.stat.exists
+
+    - name: Set the attribute DRIVER_POD_TEMPLATE_FILE_PATH
+      set_fact:
+        DRIVER_POD_TEMPLATE_FILE_PATH: "{{ driver_pod_template_file.path }}"
+      when: driver_pod_template_stat.stat.exists
+
+    - name: Here is the file
+      debug:
+        var: DRIVER_POD_TEMPLATE_FILE_PATH
+      when: driver_pod_template_stat.stat.exists and debug_operations is defined and debug_operations == "true"
+        
+
+
+
+    - name: Check if executor_pod_template file exists
+      stat:
+        path: "{{ executor_pod_template }}"
+      register: executor_pod_template_stat
+
+    - name: Here is the var_values map
+      debug:
+        var: var_values
+      when: executor_pod_template_stat.stat.exists and debug_operations is defined and debug_operations == "true"
+
+    - name: Define a var named _ that contains the var values
+      set_fact:
+        _: "{{ var_values | from_yaml }}"
+      when: executor_pod_template_stat.stat.exists
+
+    - name: Create temporary file to store executor pod template file
+      tempfile:
+        state: file
+        suffix: temp
+        prefix: "{{ ansible_env.HOME }}/tmp/"
+      register: executor_pod_template_file
+      when: executor_pod_template_stat.stat.exists
+
+    - name: Render config in temp directory using Jinja
+      template:
+        src: "{{ executor_pod_template }}"
+        dest: "{{ executor_pod_template_file.path }}"
+        force: yes
+      when: executor_pod_template_stat.stat.exists
+
+    - name: Set the attribute EXECUTOR_POD_TEMPLATE_FILE_PATH
+      set_fact:
+        EXECUTOR_POD_TEMPLATE_FILE_PATH: "{{ executor_pod_template_file.path }}"
+      when: executor_pod_template_stat.stat.exists
+
+    - name: Here is the file
+      debug:
+        var: EXECUTOR_POD_TEMPLATE_FILE_PATH
+      when: executor_pod_template_stat.stat.exists and debug_operations is defined and debug_operations == "true"
