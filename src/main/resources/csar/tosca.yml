@@ -195,6 +195,12 @@ node_types:
             KUBECONFIG_FILE: { get_attribute: [SELF, kube_config_file_path] }
             debug_operations: { get_property: [SELF, debug_operations] }
           implementation: scripts/run.sh
+        cancel:
+          inputs:
+            NAMESPACE: { get_property: [SELF, namespace] }
+            KUBECONFIG_FILE: { get_attribute: [SELF, kube_config_file_path] }
+            debug_operations: { get_property: [SELF, debug_operations] }
+          implementation: scripts/cancel.sh
     artifacts:
       - config:
           file: config/config.ja
