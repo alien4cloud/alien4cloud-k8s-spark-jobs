@@ -85,6 +85,34 @@ spark.kubernetes.executor.request.cores=${EXECUTOR_REQUEST_CORES}
 EOF
 fi
 
+if [ ! -z "$DRIVER_MEMORY" ]; then
+envsubst >> $PARAM_FILE <<EOF
+--conf
+spark.driver.memory=${DRIVER_MEMORY}
+EOF
+fi
+
+if [ ! -z "$EXECUTOR_MEMORY" ]; then
+envsubst >> $PARAM_FILE <<EOF
+--conf
+spark.executor.memory=${EXECUTOR_MEMORY}
+EOF
+fi
+
+if [ ! -z "$DRIVER_MEMORY_OVERHEAD" ]; then
+envsubst >> $PARAM_FILE <<EOF
+--conf
+spark.driver.memoryOverhead=${DRIVER_MEMORY_OVERHEAD}
+EOF
+fi
+
+if [ ! -z "$EXECUTOR_MEMORY_OVERHEAD" ]; then
+envsubst >> $PARAM_FILE <<EOF
+--conf
+spark.executor.memoryOverhead=${EXECUTOR_MEMORY_OVERHEAD}
+EOF
+fi
+
 if [ ! -z "$MEMORY_OVERHEAD_FACTOR" ]; then
 envsubst >> $PARAM_FILE <<EOF
 --conf

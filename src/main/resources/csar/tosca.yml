@@ -430,7 +430,27 @@ node_types:
         type: string
         required: false
         description: |
-           Path to store files at the spark submit side in cluster mode.                                
+           Path to store files at the spark submit side in cluster mode.
+      driver_memory:
+        type: string
+        required: false
+        description: |
+          Amount of memory to be allocated for the driver process.
+      executor_memory:
+        type: string
+        required: false
+        description: |
+          Amount of memory to be allocated per executor process.
+      driver_memory_overhead:
+        type: string
+        required: false
+        description: |
+          Amount of additional memory to be allocated for the driver process
+      executor_memory_overhead:
+        type: string
+        required: false
+        description: |
+          Amount of additional memory to be allocated per executor process.
     attributes:
       driver_pod_template_file_path: { get_operation_output: [SELF, Standard, configure, DRIVER_POD_TEMPLATE_FILE_PATH] }
       executor_pod_template_file_path: { get_operation_output: [SELF, Standard, configure, EXECUTOR_POD_TEMPLATE_FILE_PATH] }
@@ -517,6 +537,10 @@ node_types:
             PARAMETER_FILE: { get_attribute: [SELF, parameter_file] }
             EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores] }
             DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
+            DRIVER_MEMORY: { get_property: [ SELF, driver_memory ]}
+            EXECUTOR_MEMORY: { get_property: [ SELF, executor_memory]}
+            DRIVER_MEMORY_OVERHEAD: { get_property: [ SELF, driver_memory_overhead ]}
+            EXECUTOR_MEMORY_OVERHEAD: { get_property: [ SELF, executor_memory_overhead]}
             EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores] }
             MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor] }
             CONTEXT: { get_property: [SELF, context] }
@@ -609,6 +633,10 @@ node_types:
             PARAMETER_FILE: { get_attribute: [SELF, parameter_file]}
             EXECUTOR_LIMIT_CORES: { get_property: [SELF, executor_limit_cores]}
             DRIVER_LIMIT_CORES: { get_property: [SELF, driver_limit_cores]}
+            DRIVER_MEMORY: { get_property: [ SELF, driver_memory ]}
+            EXECUTOR_MEMORY: { get_property: [ SELF, executor_memory]}
+            DRIVER_MEMORY_OVERHEAD: { get_property: [ SELF, driver_memory_overhead ]}
+            EXECUTOR_MEMORY_OVERHEAD: { get_property: [ SELF, executor_memory_overhead]}
             EXECUTOR_REQUEST_CORES: { get_property: [SELF, executor_request_cores]}
             MEMORY_OVERHEAD_FACTOR: { get_property: [SELF, memory_overhead_factor]}
             debug_operations: { get_property: [SELF, debug_operations] }
