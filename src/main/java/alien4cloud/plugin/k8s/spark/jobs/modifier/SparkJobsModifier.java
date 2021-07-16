@@ -18,6 +18,7 @@ import org.alien4cloud.alm.deployment.configuration.flow.TopologyModifierSupport
 import org.alien4cloud.plugin.kubernetes.csar.Version;
 import org.alien4cloud.tosca.model.CSARDependency;
 import org.alien4cloud.tosca.model.Csar;
+import org.alien4cloud.tosca.model.definitions.ComplexPropertyValue;
 import org.alien4cloud.tosca.model.definitions.ScalarPropertyValue;
 import org.alien4cloud.tosca.model.templates.NodeTemplate;
 import org.alien4cloud.tosca.model.templates.Topology;
@@ -31,6 +32,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Maps;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.IOException;
@@ -187,6 +189,21 @@ public class SparkJobsModifier extends TopologyModifierSupport {
         if (StringUtils.isNotEmpty(nsNodeName)) {
             addRelationshipTemplate(csar,topology,job,nsNodeName,NormativeRelationshipConstants.DEPENDS_ON,"dependency", "feature");
         }
+
+        // add label for ALIEN-3696
+        addLabelOnSparkJob (job, "clusterPolicy", "privileged");
+    }
+
+    private void addLabelOnSparkJob(NodeTemplate job,String key,String value) {
+        if (log.isDebugEnabled()) {
+            log.debug("Adding Label {} = {} on {}",key,value,job.getName());
+        }
+        ComplexPropertyValue prop = (ComplexPropertyValue) job.getProperties().computeIfAbsent("labels",k -> {
+            ComplexPropertyValue p = new ComplexPropertyValue();
+            p.setValue(Maps.newHashMap());
+            return p;
+        });
+        prop.getValue().put(key,value);
     }
 
     private String getK8SCsarVersion(Topology topology) {
