@@ -8,6 +8,8 @@ metadata:
 imports:
   - tosca-normative-types:1.0.0-ALIEN20
   - alien-base-types:3.0.0
+  - docker-types:3.0.0
+  - org.alien4cloud.kubernetes.api:3.1.0
   - yorc-types:1.1.0
 
 description: >
@@ -40,7 +42,68 @@ data_types:
         description: |
           Mount options.
 
+  org.alien4cloud.k8s.spark.jobs.PersistentVolumeClaimSpec:
+    derived_from: tosca.datatypes.Root
+    properties:
+      claimName:
+        type: string
+        required: false
+        description: |
+          ClaimName is the name of a PersistentVolumeClaim in the same namespace as the pod using this volume. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims
+      readOnly:
+        type: boolean
+        required: false
+        description: |
+          Will force the ReadOnly setting in VolumeMounts. Default false.
+        default: false
+
+
 node_types:
+
+  org.alien4cloud.k8s.spark.jobs.PersistentVolumeClaimSource:
+    derived_from: tosca.nodes.Root
+    description: |
+      PersistentVolumeClaimVolumeSource represents a reference to a PersistentVolumeClaim in the same namespace.
+      More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims
+    properties:
+      name:
+        type: string
+      size:
+        type: scalar-unit.size
+        description: |
+          The requested storage size (default unit is MB).
+      spec:
+        type: org.alien4cloud.k8s.spark.jobs.PersistentVolumeClaimSpec
+        required: false
+      accessModes:
+        description: |
+          AccessModes contains the desired access modes the volume should have.
+          More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#access-modes-1
+        type: string
+        default: ReadWriteOnce
+        constraints:
+          - valid_values: [ReadWriteOnce, ReadOnlyMany, ReadWriteMany]
+      selector:
+        description: |
+          A label query over volumes to consider for binding
+        type: org.alien4cloud.kubernetes.api.datatypes.LabelSelector
+        required: false
+    requirements:
+      - attachment:
+          capability: org.alien4cloud.capabilities.DockerVolumeAttachment
+          relationship: org.alien4cloud.relationships.MountDockerVolume
+          occurrences: [1, unbounded]
+
+  org.alien4cloud.k8s.spark.jobs.PersistentVolumeClaimStorageClassSource:
+    derived_from: org.alien4cloud.k8s.spark.jobs.PersistentVolumeClaimSource
+    description: |
+      An extension of PersistentVolumeClaimSource that allows to specify a storageClass.
+      If no volume that match this claim is found in the PersistentVolume pool, a volume will be allocated in the IAAS.
+      When using this kind of volume, your Kube admin should ensure to have a storageClass defined in the cluster.
+    properties:
+      storageClassName:
+        type: string
+        default: default
 
   org.alien4cloud.k8s.spark.jobs.AbstractSparkJob:
     abstract: true
@@ -162,6 +225,8 @@ node_types:
       kube_config_file_path: { get_operation_output: [SELF, Standard, configure, KUBE_CONFIG_FILE_PATH] }
       config_file_path: { get_operation_output: [SELF, Standard, configure, CONFIG_FILE_PATH] }
       parameter_file: { get_operation_output: [ SELF, Standard, create, PARAMETER_FILE ] }
+    capabilities:
+      attach: org.alien4cloud.capabilities.DockerVolumeAttachment
     requirements:
       - endpoint:
           capability: org.alien4cloud.capabilities.StaticEndpoint

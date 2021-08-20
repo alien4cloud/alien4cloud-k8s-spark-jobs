@@ -12,19 +12,29 @@ import alien4cloud.plugin.k8s.spark.jobs.utils.K8sConfigParser;
 import alien4cloud.tosca.context.ToscaContext;
 import alien4cloud.tosca.context.ToscaContextual;
 import alien4cloud.tosca.parser.ToscaParser;
+import alien4cloud.utils.PropertyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.alien4cloud.alm.deployment.configuration.flow.FlowExecutionContext;
 import org.alien4cloud.alm.deployment.configuration.flow.TopologyModifierSupport;
 import org.alien4cloud.plugin.kubernetes.csar.Version;
+import org.alien4cloud.tosca.exceptions.InvalidPropertyValueException;
 import org.alien4cloud.tosca.model.CSARDependency;
 import org.alien4cloud.tosca.model.Csar;
+import org.alien4cloud.tosca.model.definitions.AbstractPropertyValue;
 import org.alien4cloud.tosca.model.definitions.ComplexPropertyValue;
+import org.alien4cloud.tosca.model.definitions.ListPropertyValue;
 import org.alien4cloud.tosca.model.definitions.ScalarPropertyValue;
 import org.alien4cloud.tosca.model.templates.NodeTemplate;
+import org.alien4cloud.tosca.model.templates.RelationshipTemplate;
 import org.alien4cloud.tosca.model.templates.Topology;
 import org.alien4cloud.tosca.model.types.AbstractToscaType;
+import org.alien4cloud.tosca.model.types.NodeType;
 import org.alien4cloud.tosca.normative.constants.NormativeRelationshipConstants;
+import org.alien4cloud.tosca.normative.primitives.Size;
+import org.alien4cloud.tosca.normative.primitives.SizeUnit;
+import org.alien4cloud.tosca.normative.types.SizeType;
 import org.alien4cloud.tosca.utils.TopologyNavigationUtil;
+import org.alien4cloud.tosca.utils.ToscaTypeUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -36,6 +46,9 @@ import com.google.common.collect.Maps;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -45,7 +58,11 @@ public class SparkJobsModifier extends TopologyModifierSupport {
 
     // TODO: use constant from K8S plugin
     public static final String K8S_TYPES_KUBE_CLUSTER = "org.alien4cloud.kubernetes.api.types.nodes.KubeCluster";
+    public static final String K8S_TYPES_PV = "org.alien4cloud.kubernetes.api.types.PersistentVolume";
     public static final String K8S_TYPES_SPARK_JOBS = "org.alien4cloud.k8s.spark.jobs.AbstractSparkJob";
+
+    public static final String K8S_SPARKJOBS_TYPES_VOLUMES_CLAIM    = "org.alien4cloud.k8s.spark.jobs.PersistentVolumeClaimSource";
+    public static final String K8S_SPARKJOBS_TYPES_VOLUMES_CLAIM_SC = "org.alien4cloud.k8s.spark.jobs.PersistentVolumeClaimStorageClassSource";
 
     public static final String K8S_TYPES_SIMPLE_RESOURCE = "org.alien4cloud.kubernetes.api.types.SimpleResource";
 
@@ -160,6 +177,9 @@ public class SparkJobsModifier extends TopologyModifierSupport {
 
         jobs.forEach(job -> manageJob(job,csar,topology,k8sContext.get(),k8sCluster.get(),k8sUser.get(),nsNodeName));
 
+        var pvcnodes = TopologyNavigationUtil.getNodesOfType(topology, K8S_SPARKJOBS_TYPES_VOLUMES_CLAIM, true);
+        pvcnodes.forEach (pvc -> managePVC (pvc, csar, topology, nsNodeName, k8sYamlConfig, k8sContext.get().getNamespace()));
+
         return true;
     }
 
@@ -192,6 +212,110 @@ public class SparkJobsModifier extends TopologyModifierSupport {
 
         // add label for ALIEN-3696
         addLabelOnSparkJob (job, "clusterPolicy", "privileged");
+    }
+
+    private void managePVC (NodeTemplate pvc,Csar csar,Topology topology,String nsNodeName,String k8sYamlConfig,String namespace) {
+       log.debug ("Processing PVC {}", pvc.getName());
+       AbstractPropertyValue claimNamePV = PropertyUtil.getPropertyValueFromPath(pvc.getProperties(), "spec.claimName");
+       if (claimNamePV == null) {
+          log.debug ("Adding node {} named {}", K8S_TYPES_SIMPLE_RESOURCE, pvc.getName() + "_PVC");
+          NodeTemplate volumeClaimResource = addNodeTemplate(csar,topology, pvc.getName() + "_PVC", K8S_TYPES_SIMPLE_RESOURCE, getK8SCsarVersion(topology));
+          String claimName = pvc.getName().toLowerCase() + "-pvc";
+          setNodePropertyPathValue(csar,topology,volumeClaimResource,"resource_type",new ScalarPropertyValue("pvc"));
+          setNodePropertyPathValue(csar,topology,volumeClaimResource,"resource_id",new ScalarPropertyValue(claimName));
+
+          String spec = "kind: PersistentVolumeClaim\n" +
+                        "apiVersion: v1\n" +
+                        "metadata:\n" +
+                        "  name: " + claimName + "\n" +
+                        "spec:\n" +
+                        "  accessModes:\n" +
+                        "    - " + PropertyUtil.getScalarValue(pvc.getProperties().get("accessModes")) + "\n" +
+                        "  resources:\n" +
+                        "    requests:\n" +
+                        "      storage: " + parseSize(PropertyUtil.getScalarValue(pvc.getProperties().get("size"))) + "\n";
+          NodeType volumeNodeType = ToscaContext.get(NodeType.class, pvc.getType());
+          if (ToscaTypeUtils.isOfType(volumeNodeType, K8S_SPARKJOBS_TYPES_VOLUMES_CLAIM_SC)) {
+             // add the storage class name to the claim
+             String storageClassName = PropertyUtil.getScalarValue(pvc.getProperties().get("storageClassName"));
+             spec += "  storageClassName: " + storageClassName + "\n";
+          }
+          AbstractPropertyValue selectorProperty = PropertyUtil.getPropertyValueFromPath(pvc.getProperties(), "selector");
+          if ((selectorProperty != null) && (selectorProperty instanceof ComplexPropertyValue)) {
+             var currentMap = ((ComplexPropertyValue) selectorProperty).getValue();
+             var labels = (Map<String,Object>)currentMap.get("matchLabels");
+             var label = labels.entrySet().iterator().next();
+             Object value = label.getValue();
+             String sValue = (value instanceof ScalarPropertyValue ? ((ScalarPropertyValue)value).getValue() : (String)value);
+             spec += "  selector:\n    matchLabels:\n      " + label.getKey() + ": " + sValue + "\n";
+
+             log.debug ("Adding node {} named {}", K8S_TYPES_PV, pvc.getName() + "_Volume");
+             NodeTemplate volumeResource = addNodeTemplate(csar, topology, pvc.getName() + "_Volume", K8S_TYPES_PV, getK8SCsarVersion(topology));
+             setNodePropertyPathValue(csar, topology, volumeResource, "kube_config" ,new ScalarPropertyValue(k8sYamlConfig));
+             volumeResource.getProperties().put("label_name", new ScalarPropertyValue(label.getKey()));
+             volumeResource.getProperties().put("label_value", new ScalarPropertyValue(sValue));
+             if (StringUtils.isNotEmpty(namespace)) {
+                addRelationshipTemplate(csar, topology, topology.getNodeTemplates().get(NAMESPACE_RESOURCE_NAME),
+                                        volumeResource.getName(), NormativeRelationshipConstants.DEPENDS_ON, "dependency", "feature");
+             } else {
+                addRelationshipTemplate(csar, topology, volumeClaimResource,
+                                        volumeResource.getName(), NormativeRelationshipConstants.DEPENDS_ON, "dependency", "feature");
+             }
+          }
+          log.debug ("PVC spec is {}", spec);
+          setNodePropertyPathValue(csar,topology,volumeClaimResource,"resource_spec",new ScalarPropertyValue(spec));
+
+          setNodePropertyPathValue(csar, topology, volumeClaimResource, "kube_config" ,new ScalarPropertyValue(k8sYamlConfig));
+
+          if (StringUtils.isNotEmpty(namespace)) {
+             setNodePropertyPathValue(csar, topology, volumeClaimResource, "namespace", new ScalarPropertyValue(namespace));
+          }
+
+          // Add a dependency relation to namespace node if any
+          if (StringUtils.isNotEmpty(nsNodeName)) {
+             addRelationshipTemplate(csar,topology,volumeClaimResource,nsNodeName,NormativeRelationshipConstants.DEPENDS_ON,"dependency", "feature");
+          }
+
+          var relationships = TopologyNavigationUtil.getTargetRelationships(pvc, "attachment");
+          relationships.forEach(relationshipTemplate -> manageVolumeAttachment(csar, topology, pvc, relationshipTemplate, claimName));
+      }
+
+    }
+
+    private String parseSize(String value) {
+       SizeType sizeType = new SizeType();
+       try {
+           Size size = sizeType.parse(value);
+           Double d = size.convert(SizeUnit.B.toString());
+           return String.valueOf(d.longValue());
+       } catch (InvalidPropertyValueException e) {
+           return value;
+       }
+    }
+
+    private void manageVolumeAttachment(Csar csar, Topology topology, NodeTemplate pvc, RelationshipTemplate relationshipTemplate, String claimName) {
+        NodeTemplate jobNode = topology.getNodeTemplates().get(relationshipTemplate.getTarget());
+        AbstractPropertyValue mountPath = PropertyUtil.getPropertyValueFromPath(relationshipTemplate.getProperties(), "container_path");
+
+        // get the volume name
+        AbstractPropertyValue name = PropertyUtil.getPropertyValueFromPath(pvc.getProperties(), "name");
+        if (mountPath != null && name != null) {
+            ComplexPropertyValue volumeMount = new ComplexPropertyValue();
+            volumeMount.setValue(Maps.newHashMap());
+            volumeMount.getValue().put("name", name);
+            volumeMount.getValue().put("type", "persistentVolumeClaim");
+            volumeMount.getValue().put("mountPath", mountPath);
+            volumeMount.getValue().put("options", Maps.newHashMap());
+            ((Map)volumeMount.getValue().get("options")).put("claimName", claimName);
+
+            List volumes = new ArrayList();
+            AbstractPropertyValue volumesPV = jobNode.getProperties().get("volumes");
+            if ((volumesPV != null) && (volumesPV instanceof ListPropertyValue)) {
+               volumes = ((ListPropertyValue)volumesPV).getValue(); 
+            }
+            volumes.add(volumeMount);
+            jobNode.getProperties().put("volumes", new ListPropertyValue(volumes));
+        }
     }
 
     private void addLabelOnSparkJob(NodeTemplate job,String key,String value) {
