@@ -267,6 +267,9 @@ node_types:
             debug_operations: { get_property: [SELF, debug_operations] }
           implementation: scripts/cancel.sh
     artifacts:
+      - config_folder:
+          file: config
+          type: tosca.artifacts.File
       - config:
           file: config/config.ja
           type: org.alien4cloud.artifacts.GangjaConfig
@@ -342,7 +345,7 @@ node_types:
       kube_config_file_path: { get_operation_output: [SELF, Standard, configure, KUBE_CONFIG_FILE_PATH] }
       config_file_path: { get_operation_output: [SELF, Standard, configure, CONFIG_FILE_PATH] }
       python_config_args_file_path: { get_operation_output: [SELF, Standard, configure, PYTHON_CONFIG_ARGS_FILE_PATH] }
-    artifacts:
+    artifacts:    
       - kube_config:
           file: config/kube_conf.ja
           type: org.alien4cloud.artifacts.GangjaConfig
@@ -520,7 +523,7 @@ node_types:
       driver_pod_template_file_path: { get_operation_output: [SELF, Standard, configure, DRIVER_POD_TEMPLATE_FILE_PATH] }
       executor_pod_template_file_path: { get_operation_output: [SELF, Standard, configure, EXECUTOR_POD_TEMPLATE_FILE_PATH] }
       kube_config_file_path: { get_operation_output: [SELF, Standard, configure, KUBE_CONFIG_FILE_PATH] }
-      config_file_path: { get_operation_output: [SELF, Standard, configure, CONFIG_FILE_PATH] }      
+      config_file_path: { get_operation_output: [SELF, Standard, configure, CONFIG_FILE_PATH] }
       parameter_file: { get_operation_output: [ SELF, Standard, create, PARAMETER_FILE ] }
     interfaces:
       Standard:
@@ -626,9 +629,9 @@ node_types:
             DRIVER_CONNECTION_TIMEOUT: { get_property: [SELF, driver_connection_timeout] }
             DRIVER_REQUEST_TIMEOUT: { get_property: [SELF, driver_request_timeout] }
             APP_KILL_POD_DELETION_GRACE_PERIOD: { get_property: [SELF, app_kill_pod_deletion_grace_period] }
-            FILE_UPLOAD_PATH: { get_property: [SELF, file_upload_path] }  
-            POD_DRIVER_TEMPLATE: { get_attribute: [SELF, driver_pod_template_file_path] } 
-            POD_EXECUTOR_TEMPLATE: { get_attribute: [SELF, executor_pod_template_file_path] } 
+            FILE_UPLOAD_PATH: { get_property: [SELF, file_upload_path] }
+            POD_DRIVER_TEMPLATE: { get_attribute: [SELF, driver_pod_template_file_path] }
+            POD_EXECUTOR_TEMPLATE: { get_attribute: [SELF, executor_pod_template_file_path] }
             debug_operations: { get_property: [SELF, debug_operations] }
           implementation: scripts/submit-java.sh
 
@@ -654,7 +657,7 @@ node_types:
       config_file_path: { get_operation_output: [SELF, Standard, configure, CONFIG_FILE_PATH] }
       python_config_args_file_path: { get_operation_output: [SELF, Standard, configure, PYTHON_CONFIG_ARGS_FILE_PATH] }
       driver_pod_template_file_path: { get_operation_output: [SELF, Standard, configure, DRIVER_POD_TEMPLATE_FILE_PATH] }
-      executor_pod_template_file_path: { get_operation_output: [SELF, Standard, configure, EXECUTOR_POD_TEMPLATE_FILE_PATH] }      
+      executor_pod_template_file_path: { get_operation_output: [SELF, Standard, configure, EXECUTOR_POD_TEMPLATE_FILE_PATH] }
     artifacts:
       - kube_config:
           file: config/kube_conf.ja
@@ -665,7 +668,7 @@ node_types:
       - config:
           file: config/config.ja
           type: org.alien4cloud.artifacts.GangjaConfig
-          
+
     interfaces:
       Standard:
         configure:
@@ -726,8 +729,6 @@ node_types:
             DRIVER_REQUEST_TIMEOUT: { get_property: [SELF, driver_request_timeout] }
             APP_KILL_POD_DELETION_GRACE_PERIOD: { get_property: [SELF, app_kill_pod_deletion_grace_period] }
             FILE_UPLOAD_PATH: { get_property: [SELF, file_upload_path] }
-            POD_DRIVER_TEMPLATE: { get_attribute: [SELF, driver_pod_template_file_path] } 
-            POD_EXECUTOR_TEMPLATE: { get_attribute: [SELF, executor_pod_template_file_path] } 
+            POD_DRIVER_TEMPLATE: { get_attribute: [SELF, driver_pod_template_file_path] }
+            POD_EXECUTOR_TEMPLATE: { get_attribute: [SELF, executor_pod_template_file_path] }
           implementation: scripts/submit-python.sh
-          
-          

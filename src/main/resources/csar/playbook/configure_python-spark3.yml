@@ -18,7 +18,7 @@
       tempfile:
         state: file
         suffix: temp
-        prefix: "{{ ansible_env.HOME }}/tmp/"
+        prefix: "{{ config_folder }}/tmp/"
       register: config_file
 
     - name: Render config in temp directory using Jinja
@@ -40,7 +40,7 @@
       tempfile:
         state: file
         suffix: kube_config_file
-        prefix: "{{ ansible_env.HOME }}/tmp/"
+        prefix: "{{ config_folder }}/tmp/"
       register: kube_config_file
 
     - name: Render KUBE config in temp directory using Jinja
@@ -67,7 +67,7 @@
       tempfile:
         state: file
         suffix: config_arg_file
-        prefix: "{{ ansible_env.HOME }}/tmp/"
+        prefix: "{{ config_folder }}/tmp/"
       register: config_arg_file
       when: config_args_file_stat.stat.exists
 
@@ -102,7 +102,7 @@
       tempfile:
         state: file
         suffix: temp
-        prefix: "{{ ansible_env.HOME }}/tmp/"
+        prefix: "{{ config_folder }}/tmp/"
       register: driver_pod_template_file
       when: driver_pod_template_stat.stat.exists
 
@@ -122,7 +122,7 @@
       debug:
         var: DRIVER_POD_TEMPLATE_FILE_PATH
       when: driver_pod_template_stat.stat.exists and debug_operations is defined and debug_operations == "true"
-        
+
 
 
 
@@ -145,7 +145,7 @@
       tempfile:
         state: file
         suffix: temp
-        prefix: "{{ ansible_env.HOME }}/tmp/"
+        prefix: "{{ config_folder }}/tmp/"
       register: executor_pod_template_file
       when: executor_pod_template_stat.stat.exists
 
@@ -165,5 +165,3 @@
       debug:
         var: EXECUTOR_POD_TEMPLATE_FILE_PATH
       when: executor_pod_template_stat.stat.exists and debug_operations is defined and debug_operations == "true"
-
-      
