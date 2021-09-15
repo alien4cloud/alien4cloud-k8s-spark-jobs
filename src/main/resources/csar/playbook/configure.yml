@@ -23,8 +23,8 @@
     - name: Create temporary file to store config file
       tempfile:
         state: file
-        suffix: temp
-        prefix: "{{ config_folder }}/tmp/"
+        suffix: config
+        prefix: "{{ config_folder }}/"
       register: config_file
       when: config_stat.stat.exists
 
@@ -48,8 +48,8 @@
     - name: Create temporary file to store kube config file
       tempfile:
         state: file
-        suffix: kube_config_file
-        prefix: "{{ config_folder }}/tmp/"
+        suffix: kube_config
+        prefix: "{{ config_folder }}/"
       register: kube_config_file
 
     - name: Render kube config in temp directory using Jinja
