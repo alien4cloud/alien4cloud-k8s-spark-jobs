@@ -23,8 +23,8 @@
     - name: Create temporary file to store config file
       tempfile:
         state: file
-        suffix: store_config
-        prefix: "{{ config_folder }}/"
+        suffix: temp
+        prefix: "{{ config_folder }}/tmp/"
       register: config_file
       when: config_stat.stat.exists
 
@@ -48,8 +48,8 @@
     - name: Create temporary file to store kube config file
       tempfile:
         state: file
-        suffix: kube_config
-        prefix: "{{ config_folder }}/"
+        suffix: kube_config_file
+        prefix: "{{ config_folder }}/tmp/"
       register: kube_config_file
 
     - name: Render kube config in temp directory using Jinja
@@ -81,8 +81,8 @@
     - name: Create temporary file to store driver pod template file
       tempfile:
         state: file
-        suffix: driver_pod_template
-        prefix: "{{ config_folder }}/"
+        suffix: temp
+        prefix: "{{ config_folder }}/tmp/"
       register: driver_pod_template_file
       when: driver_pod_template_stat.stat.exists
 
@@ -124,8 +124,8 @@
     - name: Create temporary file to store executor pod template file
       tempfile:
         state: file
-        suffix: executor_pod_template
-        prefix: "{{ config_folder }}/"
+        suffix: temp
+        prefix: "{{ config_folder }}/tmp/"
       register: executor_pod_template_file
       when: executor_pod_template_stat.stat.exists
 
